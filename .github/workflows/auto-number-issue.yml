@@ -1,0 +1,26 @@
+name: Auto-number issue title
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  number-title:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Replace MF-0XX with actual issue number
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = context.payload.issue.title;
+            if (!title.includes('MF-0XX')) return;
+            const num = String(context.payload.issue.number).padStart(3, '0');
+            const newTitle = title.replace('MF-0XX', `MF-${num}`);
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              title: newTitle,
+            });

@@ -1,0 +1,146 @@
+name: CLI Feature
+description: A new missionforge CLI command or subcommand
+title: "MF-0XX: "
+labels: ["feature", "cli"]
+body:
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "MUST FINISH — Required for project viability"
+        - "SHOULD FINISH — Makes project easier to demo"
+        - "NICE TO HAVE — Increases polish and judging impact"
+    validations:
+      required: true
+
+  - type: input
+    id: command
+    attributes:
+      label: Command Signature
+      description: The exact CLI invocation this issue implements.
+      placeholder: "missionforge baseline <sub-mission-id> --capture"
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: List MF issue numbers or file names this command depends on. Write "None" if independent.
+      placeholder: |
+        - MF-001 (CLI Foundation) — needs workspace path resolution
+        - MF-002 (Schemas) — needs sub-mission schema
+    validations:
+      required: true
+
+  - type: textarea
+    id: parallel_work
+    attributes:
+      label: Parallel Work
+      description: What can run alongside this, and what it unblocks when done.
+      placeholder: Can run in parallel with MF-006 and MF-007 once MF-002 is complete.
+    validations:
+      required: true
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What problem this command solves for the developer/Bob workflow.
+    validations:
+      required: true
+
+  - type: textarea
+    id: flags
+    attributes:
+      label: Flags & Arguments
+      description: All arguments, options, and flags the command accepts.
+      placeholder: |
+        | Flag | Type | Required | Description |
+        |---|---|---|---|
+        | `<sub-mission-id>` | positional | yes | e.g. MF-001-A |
+        | `--capture` | flag | no | Generate baseline.todo.json |
+        | `--commit` | flag | no | Commit filled baseline.todo.json to baseline.json |
+        | `--force` | flag | no | Re-capture even if baseline.json exists |
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks
+      description: Markdown checklist of implementation steps.
+      placeholder: |
+        - [ ] Register command with Click/Typer
+        - [ ] Implement --capture logic
+        - [ ] Implement --commit logic with field validation
+        - [ ] Add --force override
+        - [ ] Write unit tests
+        - [ ] Write integration test for full capture → commit flow
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      placeholder: |
+        - [ ] `missionforge <command> --help` shows correct usage
+        - [ ] Happy path produces expected output file
+        - [ ] Error cases show clear, actionable messages
+        - [ ] Unit test coverage > 80%
+    validations:
+      required: true
+
+  - type: textarea
+    id: example_output
+    attributes:
+      label: Example Terminal Output
+      description: Paste the expected terminal output for the happy path. Helps reviewers verify correctness at a glance.
+      render: shell
+      placeholder: |
+        $ missionforge baseline MF-001-A --capture
+        ✓ baseline.todo.json written to .missionforge/MF-001-A/
+          Fill in all metric values, then run --commit.
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: Technical Notes
+      description: Constraints, implementation hints, or gotchas.
+      placeholder: |
+        - No GitPython — use subprocess for git calls
+        - baseline.json must be immutable after commit (chmod 444)
+        - Validate metric value types match schema (bool, int, string)
+    validations:
+      required: false
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: Estimated Effort (hackathon pace)
+      options:
+        - "1–2 hours"
+        - "2–3 hours"
+        - "3–4 hours"
+        - "4–5 hours"
+        - "5–7 hours"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: assignment
+    attributes:
+      label: Developer Assignment
+      options:
+        - "Dev A — CLI Core"
+        - "Dev B — CLI Validation"
+        - "Dev C — Board Backend"
+        - "Dev D — Board Frontend"
+        - "Full Team"
+        - "Unassigned"
+    validations:
+      required: true

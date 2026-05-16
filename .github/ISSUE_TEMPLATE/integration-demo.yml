@@ -1,0 +1,116 @@
+name: Integration / Demo
+description: Cross-team integration, demo preparation, or submission task
+title: "MF-0XX: "
+labels: ["integration", "demo"]
+body:
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "MUST FINISH — Required for hackathon submission"
+        - "SHOULD FINISH — Makes project easier to demo"
+        - "NICE TO HAVE — Increases polish and judging impact"
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: List all issues that must be complete before this integration work begins.
+      placeholder: |
+        - All Phase 1 issues (MF-001 through MF-013)
+        - MF-014, MF-015, MF-016 (Board UI)
+    validations:
+      required: true
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What this integration achieves and what it enables (demo recording, judging submission, etc.).
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks
+      description: Checklist organized by concern (e.g., UI Polish, Demo Recording, Documentation, Submission).
+      placeholder: |
+        ### Integration Testing
+        - [ ] End-to-end test of complete workflow
+
+        ### Demo Recording
+        - [ ] Write video script (scene by scene)
+        - [ ] Record and edit demo video
+
+        ### Documentation
+        - [ ] Update README with installation and quick-start
+
+        ### Submission
+        - [ ] Package Bob session exports and evidence reports
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      placeholder: |
+        - [ ] Full workflow runs end-to-end without manual fixes
+        - [ ] Demo video is complete and under 3 minutes
+        - [ ] Installation works on a clean machine
+    validations:
+      required: true
+
+  - type: textarea
+    id: demo_structure
+    attributes:
+      label: Demo / Video Structure
+      description: Scene-by-scene outline if this involves a demo recording. Leave blank otherwise.
+      placeholder: |
+        1. Opening (15s): ...
+        2. Problem statement (15s): ...
+        3. MissionForge walkthrough (90s): ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: Technical Notes
+      placeholder: |
+        - Use stable fixture dataset — avoid live failures during recording
+        - Have backup recordings of key moments
+    validations:
+      required: false
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: Estimated Effort (hackathon pace)
+      options:
+        - "1–2 hours"
+        - "2–3 hours"
+        - "3–4 hours"
+        - "4–5 hours"
+        - "5–7 hours"
+        - "8–12 hours"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: assignment
+    attributes:
+      label: Developer Assignment
+      options:
+        - "Full Team"
+        - "Dev A — CLI Core"
+        - "Dev B — CLI Validation"
+        - "Dev C — Board Backend"
+        - "Dev D — Board Frontend"
+        - "Unassigned"
+    validations:
+      required: true

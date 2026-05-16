@@ -1,0 +1,114 @@
+name: CLI / Backend Feature
+description: New CLI command, backend endpoint, schema, or utility
+title: "MF-0XX: "
+labels: ["feature", "cli"]
+body:
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "MUST FINISH — Required for project viability"
+        - "SHOULD FINISH — Makes project easier to demo"
+        - "NICE TO HAVE — Increases polish and judging impact"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Phase
+      options:
+        - "Phase 1 — Core CLI Harness"
+        - "Phase 2 — Mission Board and Watsonx.ai Layer"
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: List issue numbers or file names this issue depends on. Write "None" if independent.
+      placeholder: |
+        - MF-001 (CLI Foundation)
+        - schemas-validators.md
+    validations:
+      required: true
+
+  - type: textarea
+    id: parallel_work
+    attributes:
+      label: Parallel Work
+      description: What can run in parallel with this issue, and what it unblocks when done.
+      placeholder: Can work in parallel with MF-006 once MF-002 is complete.
+    validations:
+      required: true
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: One-paragraph description of what this issue accomplishes and why it matters.
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks
+      description: Markdown checklist of implementation steps.
+      placeholder: |
+        - [ ] Implement `missionforge <command>` entry point
+        - [ ] Add error handling for missing workspace
+        - [ ] Write unit tests
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Checkbox list of verifiable conditions that define "done".
+      placeholder: |
+        - [ ] Command runs successfully and shows help text
+        - [ ] Unit test coverage > 80%
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: Technical Notes
+      description: Architecture decisions, constraints, libraries, or gotchas the implementer needs to know.
+      placeholder: |
+        - Use Click/Typer for CLI
+        - No GitPython — subprocess calls only
+    validations:
+      required: false
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: Estimated Effort (hackathon pace)
+      options:
+        - "1–2 hours"
+        - "2–3 hours"
+        - "3–4 hours"
+        - "4–5 hours"
+        - "5–7 hours"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: assignment
+    attributes:
+      label: Developer Assignment
+      options:
+        - "Dev A — CLI Core"
+        - "Dev B — CLI Validation"
+        - "Dev C — Board Backend"
+        - "Dev D — Board Frontend"
+        - "Full Team"
+        - "Unassigned"
+    validations:
+      required: true

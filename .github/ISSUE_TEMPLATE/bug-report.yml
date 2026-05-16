@@ -1,0 +1,74 @@
+name: Bug Report
+description: Something is broken — CLI error, wrong output, UI defect, or test failure
+title: "MF-0XX: bug: "
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - "CLI — command error or wrong output"
+        - "Schemas / Validation — bad error message or false pass/fail"
+        - "Baseline / Validation flow — capture or commit problem"
+        - "Board Backend — API returning wrong data or crashing"
+        - "Board Frontend — UI rendering or state bug"
+        - "Integration — cross-component failure"
+        - "Tests — flaky or broken tests"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly. Include the command you ran or the action you took.
+      placeholder: |
+        Running `missionforge baseline MF-001-A --commit` throws a KeyError
+        even when all fields in baseline.todo.json are filled.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      placeholder: The command should write baseline.json and print a success summary.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. `missionforge init`
+        2. `missionforge decompose MF-001`
+        3. Fill baseline.todo.json for MF-001-A
+        4. `missionforge baseline MF-001-A --commit`
+        5. → KeyError: 'value'
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Environment / Context
+      placeholder: |
+        - Python 3.11, macOS 14
+        - Relevant file contents or git state
+        - Stack trace
+    validations:
+      required: false
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - "Blocks demo — must fix now"
+        - "Blocks a dev stream — fix before next sync"
+        - "Annoying but workaround exists"
+        - "Minor / cosmetic"
+    validations:
+      required: true

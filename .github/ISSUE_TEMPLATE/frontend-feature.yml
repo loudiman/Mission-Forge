@@ -1,0 +1,140 @@
+name: Frontend / UI Feature
+description: Mission Board UI component, page, or visual feature
+title: "MF-0XX: "
+labels: ["feature", "frontend"]
+body:
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "MUST FINISH — Required for project viability"
+        - "SHOULD FINISH — Makes project easier to demo"
+        - "NICE TO HAVE — Increases polish and judging impact"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Phase
+      options:
+        - "Phase 1 — Core CLI Harness"
+        - "Phase 2 — Mission Board and Watsonx.ai Layer"
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: |
+        List API endpoints, components, or issues this depends on.
+        Note: frontend work can start against a mock API — list what's needed for the real integration.
+      placeholder: |
+        - API contract with Dev C (needed from day 0)
+        - MF-014 board-backend (needed for real data; mock API unblocks earlier)
+    validations:
+      required: true
+
+  - type: textarea
+    id: parallel_work
+    attributes:
+      label: Parallel Work
+      description: What can be built before backend is live (mock API), and what requires real integration.
+      placeholder: |
+        Kanban layout and card components can be built against MSW mock from hour 0.
+        Real data integration requires MF-014.
+    validations:
+      required: true
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What this UI feature shows or enables for the user/judge.
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks
+      description: Markdown checklist split by concern (layout, components, state, integration).
+      placeholder: |
+        ### Layout
+        - [ ] Create Kanban board skeleton with columns
+
+        ### Components
+        - [ ] MissionCard component
+
+        ### State / Data
+        - [ ] SWR polling hook (3–5s interval)
+
+        ### Integration
+        - [ ] Swap MSW mock → real backend API
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      placeholder: |
+        - [ ] Board renders all parent missions in correct columns
+        - [ ] Cards update without disrupting selected state during polling
+        - [ ] Loading and error states are visible and clear
+        - [ ] UI is legible in a screen recording at 1080p
+    validations:
+      required: true
+
+  - type: textarea
+    id: design_notes
+    attributes:
+      label: Design / UX Notes
+      description: Visual spec, color scheme, component library choices, responsive requirements.
+      placeholder: |
+        - Status colors: green=PASSED, red=FAILED, yellow=IN_PROGRESS, gray=BLOCKED
+        - Tailwind CSS + shadcn/ui
+        - Must be demo-recordable at 1920×1080
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: Technical Notes
+      description: Framework choices, data fetching patterns, third-party libraries.
+      placeholder: |
+        - Next.js 14 App Router
+        - SWR for data fetching
+        - MSW for mock API in development
+    validations:
+      required: false
+
+  - type: dropdown
+    id: effort
+    attributes:
+      label: Estimated Effort (hackathon pace)
+      options:
+        - "1–2 hours"
+        - "2–3 hours"
+        - "3–4 hours"
+        - "4–5 hours"
+        - "5–7 hours"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: assignment
+    attributes:
+      label: Developer Assignment
+      options:
+        - "Dev D — Board Frontend"
+        - "Dev C — Board Backend"
+        - "Dev A — CLI Core"
+        - "Dev B — CLI Validation"
+        - "Full Team"
+        - "Unassigned"
+    validations:
+      required: true
