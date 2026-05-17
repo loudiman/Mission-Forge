@@ -122,5 +122,15 @@ class Workspace:
         parent_id = sub_mission_id.rsplit("-", 1)[0]
         return self.sub_mission_path(parent_id, sub_mission_id) / "baseline.json"
 
+    def validation_todo_path(self, sub_mission_id: str) -> Path:
+        """Get path to validation.todo.json for a sub-mission."""
+        parent_id = sub_mission_id.rsplit("-", 1)[0]
+        return self.sub_mission_path(parent_id, sub_mission_id) / "validation.todo.json"
+
+    def validation_path(self, sub_mission_id: str) -> Path:
+        """Get path to validation.json for a sub-mission."""
+        parent_id = sub_mission_id.rsplit("-", 1)[0]
+        return self.sub_mission_path(parent_id, sub_mission_id) / "validation.json"
+
 
 # Made with Bob

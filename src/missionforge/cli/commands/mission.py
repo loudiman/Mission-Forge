@@ -45,7 +45,7 @@ def _validate_mission(mission_id: str) -> None:
         workspace = Workspace()
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
-        raise typer.Exit(1) from e
+        raise typer.Exit(1) from None
 
     mission_path = workspace.mission_path(mission_id)
     mission_file = mission_path / "mission.yaml"

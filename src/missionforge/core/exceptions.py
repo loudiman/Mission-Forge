@@ -104,4 +104,46 @@ class BaselineIncompleteError(MissionForgeError):
         )
 
 
+class ValidationAlreadyExistsError(MissionForgeError):
+    """Raised when validation.json already committed."""
+
+    def __init__(self, sub_mission_id: str, validation_path: str):
+        super().__init__(
+            f"Validation already exists for {sub_mission_id} at {validation_path}",
+            "Use 'missionforge validate capture <id> --force' to overwrite",
+        )
+
+
+class ValidationNotCapturedError(MissionForgeError):
+    """Raised when trying to commit without capture."""
+
+    def __init__(self, sub_mission_id: str):
+        super().__init__(
+            f"No validation.todo.json found for {sub_mission_id}",
+            "Run 'missionforge validate capture <id>' first to generate validation.todo.json",
+        )
+
+
+class ValidationIncompleteError(MissionForgeError):
+    """Raised when validation has unfilled metric values."""
+
+    def __init__(self, sub_mission_id: str, unfilled_metrics: list[str]):
+        metrics_list = "\n  • ".join(unfilled_metrics)
+        super().__init__(
+            f"Validation for {sub_mission_id} has unfilled metric values:\n  • {metrics_list}",
+            "Fill all final_value fields in validation.todo.json before committing",
+        )
+
+
+class ScopeViolationError(MissionForgeError):
+    """Raised when scope constraints are violated."""
+
+    def __init__(self, sub_mission_id: str, violations: list[str]):
+        violations_list = "\n  • ".join(violations)
+        super().__init__(
+            f"Scope violations detected for {sub_mission_id}:\n  • {violations_list}",
+            "Ensure all changed files are within allowed_paths and outside forbidden_paths",
+        )
+
+
 # Made with Bob
