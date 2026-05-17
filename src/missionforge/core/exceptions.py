@@ -67,4 +67,41 @@ class PluginError(MissionForgeError):
     pass
 
 
+class BaselineAlreadyExistsError(MissionForgeError):
+    """Raised when baseline already committed."""
+
+    def __init__(self, sub_mission_id: str, baseline_path: str):
+        super().__init__(
+            f"Baseline already exists for {sub_mission_id} at {baseline_path}",
+            "Use 'missionforge baseline reset <id> --force' to remove and re-capture",
+        )
+
+
+class BaselineNotCapturedError(MissionForgeError):
+    """Raised when trying to commit without capture."""
+
+    def __init__(self, sub_mission_id: str):
+        super().__init__(
+            f"No baseline.todo.json found for {sub_mission_id}",
+            "Run 'missionforge baseline capture <id>' first to generate baseline.todo.json",
+        )
+
+
+class BaselineValidationError(MissionForgeError):
+    """Raised when baseline validation fails."""
+
+    pass
+
+
+class BaselineIncompleteError(MissionForgeError):
+    """Raised when baseline has unfilled values."""
+
+    def __init__(self, sub_mission_id: str, unfilled_metrics: list[str]):
+        metrics_list = "\n  • ".join(unfilled_metrics)
+        super().__init__(
+            f"Baseline for {sub_mission_id} has unfilled metric values:\n  • {metrics_list}",
+            "Fill all metric values in baseline.todo.json before committing",
+        )
+
+
 # Made with Bob
