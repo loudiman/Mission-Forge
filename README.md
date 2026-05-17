@@ -30,19 +30,42 @@ AI coding agents (like GitHub Copilot Workspace, Devin, or custom LLM pipelines)
 
 MissionForge introduces a **mission → sub-mission → validate** pipeline:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Parent Mission                          │
-│  goal: "Migrate REST API from Flask to FastAPI"             │
-│  forbidden_paths: [".env", "docker-compose.yml"]            │
-├──────────┬──────────┬──────────┬───────────────┬────────────┤
-│ MF-001-A │ MF-001-B │ MF-001-C │   MF-001-D   │  MF-001-E  │
-│ Models   │ Routes   │ Auth     │   Tests       │  Docs      │
-│          │ needs: A │ needs: A │ needs: A,B,C  │ needs: ALL │
-│ src/     │ src/     │ src/     │   tests/      │  docs/     │
-│ models/* │ routes/* │ auth/*   │   **/*        │  **/*      │
-└──────────┴──────────┴──────────┴───────────────┴────────────┘
-        ↓ topological sort → execution_order → validate each
+```mermaid
+flowchart TD
+    %% Styling
+    classDef parent fill:#1e1e1e,stroke:#3b82f6,stroke-width:2px,color:#fff
+    classDef sub fill:#2d2d2d,stroke:#64748b,stroke-width:1px,color:#e2e8f0
+    classDef subReady fill:#166534,stroke:#22c55e,stroke-width:2px,color:#fff
+
+    %% Parent Mission
+    subgraph Parent ["Parent Mission (MF-001)"]
+        goal["Goal: Migrate REST API from Flask to FastAPI"]
+        forbidden["Forbidden: [.env, docker-compose.yml]"]
+    end
+    class Parent parent
+
+    %% Sub-missions
+    A["MF-001-A<br/><br/>Models<br/><br/>path: src/models/*"]:::subReady
+    B["MF-001-B<br/><br/>Routes<br/><br/>path: src/routes/*"]:::sub
+    C["MF-001-C<br/><br/>Auth<br/><br/>path: src/auth/*"]:::sub
+    D["MF-001-D<br/><br/>Tests<br/><br/>path: tests/**/*"]:::sub
+    E["MF-001-E<br/><br/>Docs<br/><br/>path: docs/**/*"]:::sub
+
+    Parent -.-> A
+    Parent -.-> B
+    Parent -.-> C
+    Parent -.-> D
+    Parent -.-> E
+
+    %% Dependencies
+    A -->|depends_on| B
+    A -->|depends_on| C
+    B -->|depends_on| D
+    C -->|depends_on| D
+    A -->|depends_on| E
+    B -->|depends_on| E
+    C -->|depends_on| E
+    D -->|depends_on| E
 ```
 
 Each sub-mission is **sandboxed** to specific file paths, has explicit **dependency ordering**, and is **validated deterministically** before moving on.
