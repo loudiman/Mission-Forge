@@ -115,6 +115,51 @@ Validate a parent mission configuration file.
 **Example:**
 ```bash
 missionforge mission MF-001 --validate
+
+### Decompose Commands
+
+#### `missionforge decompose <MISSION_ID>`
+
+Decompose a parent mission into sub-missions with guided workflow.
+
+**What it does:**
+1. Validates the parent mission
+2. Creates sub-missions directory structure
+3. Displays instructions and templates for Bob
+4. Shows validation guidance
+5. Provides plan.yaml guidance
+6. Displays current status
+
+**Arguments:**
+- `MISSION_ID`: Parent mission identifier
+
+**Example:**
+```bash
+missionforge decompose MF-001
+```
+
+**See also:** [Decompose Command Documentation](docs/DECOMPOSE_COMMAND.md)
+
+#### `missionforge validate-submission <MISSION_ID> <SUB_MISSION_ID>`
+
+Validate a specific sub-mission file.
+
+**What it validates:**
+- Sub-mission ID format (e.g., MF-001-A)
+- Parent reference correctness
+- Forbidden path conflicts
+- Dependency existence
+- Path overlaps (warnings)
+
+**Arguments:**
+- `MISSION_ID`: Parent mission identifier
+- `SUB_MISSION_ID`: Sub-mission identifier to validate
+
+**Example:**
+```bash
+missionforge validate-submission MF-001 MF-001-A
+```
+
 ```
 
 ### Workspace Commands
