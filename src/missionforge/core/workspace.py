@@ -96,5 +96,41 @@ class Workspace:
                 missions.append(mission_dir.name)
         return sorted(missions)
 
+    def baseline_todo_path(self, sub_mission_id: str) -> Path:
+        """Get path to baseline.todo.json for a sub-mission.
+
+        Args:
+            sub_mission_id: Sub-mission identifier (e.g., 'MF-001-A').
+
+        Returns:
+            Path to baseline.todo.json file.
+        """
+        # Extract parent mission ID (e.g., "MF-001-A" -> "MF-001")
+        parent_id = sub_mission_id.rsplit("-", 1)[0]
+        return self.sub_mission_path(parent_id, sub_mission_id) / "baseline.todo.json"
+
+    def baseline_path(self, sub_mission_id: str) -> Path:
+        """Get path to baseline.json for a sub-mission.
+
+        Args:
+            sub_mission_id: Sub-mission identifier (e.g., 'MF-001-A').
+
+        Returns:
+            Path to baseline.json file.
+        """
+        # Extract parent mission ID (e.g., "MF-001-A" -> "MF-001")
+        parent_id = sub_mission_id.rsplit("-", 1)[0]
+        return self.sub_mission_path(parent_id, sub_mission_id) / "baseline.json"
+
+    def validation_todo_path(self, sub_mission_id: str) -> Path:
+        """Get path to validation.todo.json for a sub-mission."""
+        parent_id = sub_mission_id.rsplit("-", 1)[0]
+        return self.sub_mission_path(parent_id, sub_mission_id) / "validation.todo.json"
+
+    def validation_path(self, sub_mission_id: str) -> Path:
+        """Get path to validation.json for a sub-mission."""
+        parent_id = sub_mission_id.rsplit("-", 1)[0]
+        return self.sub_mission_path(parent_id, sub_mission_id) / "validation.json"
+
 
 # Made with Bob
