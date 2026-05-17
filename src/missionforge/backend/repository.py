@@ -84,7 +84,7 @@ class MissionRepository:
             if d.is_dir() and not d.name.startswith(".")
         ])
 
-    def read_mission_yaml(self, mission_id: str) -> dict | None:
+    def read_mission_yaml(self, mission_id: str) -> dict:
         """
         Read and parse mission.yaml for a parent mission.
         """
@@ -92,7 +92,7 @@ class MissionRepository:
             self.missionforge_dir / "missions" / mission_id / "mission.yaml"
         )
         if not mission_file.exists():
-            return None
+            raise RepositoryError("Mission file not found")
 
         def _loader(path: Path) -> dict:
             try:

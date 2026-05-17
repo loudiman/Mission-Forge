@@ -8,7 +8,7 @@ from ..models.responses import (
     SubMissionDetail,
     SubMissionSummary,
 )
-from ..repository import MissionRepository
+from ..repository import MissionRepository, RepositoryError
 
 router = APIRouter(prefix="/api/missions", tags=["missions"])
 
@@ -37,9 +37,10 @@ def get_mission(
     repo: MissionRepository = Depends(get_repository)
 ):
     """Get details of a specific parent mission."""
-    mission_yaml = repo.read_mission_yaml(mission_id)
-    if not mission_yaml:
-        raise HTTPException(status_code=404, detail=f"Mission {mission_id} not found")
+    try:
+        mission_yaml = repo.read_mission_yaml(mission_id)
+    except RepositoryError as e:
+        raise HTTPException(status_code=404, detail=f"Mission {mission_id} not found") from e
 
     return MissionDetail(
         id=mission_yaml.get("id", mission_id),
@@ -58,9 +59,10 @@ def list_sub_missions(
     repo: MissionRepository = Depends(get_repository)
 ):
     """List all sub-missions for a specific parent mission."""
-    mission_yaml = repo.read_mission_yaml(mission_id)
-    if not mission_yaml:
-        raise HTTPException(status_code=404, detail=f"Mission {mission_id} not found")
+    try:
+        mission_yaml = repo.read_mission_yaml(mission_id)
+    except RepositoryError as e:
+        raise HTTPException(status_code=404, detail=f"Mission {mission_id} not found") from e
 
     sub_missions = mission_yaml.get("sub_missions", [])
     result = []
