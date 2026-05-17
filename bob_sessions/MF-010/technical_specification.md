@@ -1,4 +1,4 @@
-# MF-010: Parent Mission Validation - Technical Specification
+∑# MF-010: Parent Mission Validation - Technical Specification
 
 ## API Contracts
 

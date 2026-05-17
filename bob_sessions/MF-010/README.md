@@ -14,7 +14,7 @@ This directory contains comprehensive planning documentation for implementing pa
 - Implementation phases (1-4 hours breakdown)
 - Validation logic details
 - File structure and examples
-- CLI usage patterns
+- CLI usage patt∑erns
 - Error handling strategies
 - Testing strategy
 - Edge cases and performance considerations
