@@ -19,7 +19,7 @@ def capture_baseline(
     force: bool = typer.Option(False, "--force", help="Overwrite existing baseline"),
 ) -> None:
     """Capture baseline metrics from sub-mission definition.
-    
+
     Creates baseline.todo.json with metric definitions for Bob to fill.
     """
     try:
@@ -57,7 +57,7 @@ def commit_baseline(
     sub_mission_id: str = typer.Argument(..., help="Sub-mission ID (e.g., MF-001-A)"),
 ) -> None:
     """Commit baseline from baseline.todo.json to immutable baseline.json.
-    
+
     Validates all metrics are filled and creates read-only baseline.json.
     """
     try:
@@ -104,7 +104,7 @@ def reset_baseline(
     force: bool = typer.Option(False, "--force", help="Remove committed baseline.json"),
 ) -> None:
     """Reset baseline by removing baseline files.
-    
+
     Removes baseline.todo.json and baseline.json (if --force is used).
     """
     try:

@@ -21,7 +21,7 @@ def decompose_command(
     mission_id: str = typer.Argument(..., help="Parent mission ID to decompose"),
 ) -> None:
     """Decompose a parent mission into sub-missions.
-    
+
     This command guides Bob through the process of creating sub-missions:
     1. Validates the parent mission exists and is valid
     2. Creates the sub-missions directory structure
@@ -33,7 +33,7 @@ def decompose_command(
         workspace = Workspace()
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
     mission_path = workspace.mission_path(mission_id)
     mission_file = mission_path / "mission.yaml"
@@ -75,7 +75,7 @@ def decompose_command(
         parent_mission = SchemaValidator.validate_parent_mission_file(mission_file)
     except Exception as e:
         console.print(f"[red]Error loading parent mission:[/red] {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
     # Step 2: Create sub-missions directory
     console.print("\n[bold cyan]Step 2:[/bold cyan] Setting up sub-missions directory...")
@@ -293,7 +293,7 @@ def validate_submission_command(
     sub_mission_id: str = typer.Argument(..., help="Sub-mission ID to validate"),
 ) -> None:
     """Validate a specific sub-mission file.
-    
+
     This command validates:
     - Sub-mission file exists and has valid YAML
     - ID format matches parent-[A-Z] pattern
@@ -305,7 +305,7 @@ def validate_submission_command(
         workspace = Workspace()
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
     mission_path = workspace.mission_path(mission_id)
     sub_missions_dir = mission_path / "sub-missions"
@@ -329,7 +329,7 @@ def validate_submission_command(
         parent_mission = SchemaValidator.validate_parent_mission_file(mission_file)
     except Exception as e:
         console.print(f"[red]Error:[/red] Parent mission validation failed: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
     # Validate sub-mission
     errors = []
@@ -340,7 +340,7 @@ def validate_submission_command(
         console.print("[green]✓[/green] YAML syntax and schema valid")
     except Exception as e:
         console.print(f"[red]✗[/red] Schema validation failed: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
     # Validate ID format
     pattern = rf"^{re.escape(mission_id)}-[A-Z]$"
