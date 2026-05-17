@@ -354,6 +354,17 @@ class SubMissionBaselineMetric(BaseModel):
         if self.value is not None:
             target_type = type(self.baseline_target)
             value_type = type(self.value)
+            
+            # Allow numeric type compatibility (int/float are interchangeable)
+            # But exclude bool since bool is a subclass of int in Python
+            numeric_types = (int, float)
+            is_target_numeric = isinstance(self.baseline_target, numeric_types) and not isinstance(self.baseline_target, bool)
+            is_value_numeric = isinstance(self.value, numeric_types) and not isinstance(self.value, bool)
+            
+            if is_target_numeric and is_value_numeric:
+                return self
+            
+            # For non-numeric types, require exact match
             if target_type != value_type:
                 raise ValueError(
                     f"Value type ({value_type.__name__}) does not match "

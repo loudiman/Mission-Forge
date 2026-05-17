@@ -310,10 +310,10 @@ class TestCommitBaseline:
         
         assert "Value type" in str(exc_info.value)
 
-    def test_commit_baseline_float_int_mismatch(
+    def test_commit_baseline_float_int_compatibility(
         self, baseline_service: BaselineService, sub_mission_with_metrics: str
     ):
-        """Test that float/int type mismatch is detected."""
+        """Test that float/int type compatibility is allowed."""
         sub_mission_id = sub_mission_with_metrics
         
         # Create baseline.todo.json with int instead of float
@@ -329,7 +329,7 @@ class TestCommitBaseline:
                     "metric_id": "test_coverage",
                     "description": "Metric: test_coverage",
                     "baseline_target": 85.0,
-                    "value": 85,  # int instead of float
+                    "value": 85,  # int instead of float - should be allowed
                 },
             ],
         }
@@ -337,11 +337,13 @@ class TestCommitBaseline:
         with open(todo_path, "w") as f:
             json.dump(todo_data, f)
         
-        # Should raise Pydantic ValidationError (caught during model parsing)
-        with pytest.raises(ValidationError) as exc_info:
-            baseline_service.commit_baseline(sub_mission_id)
+        # Should succeed - numeric types are compatible
+        baseline_path = baseline_service.commit_baseline(sub_mission_id)
         
-        assert "Value type" in str(exc_info.value)
+        assert baseline_path.exists()
+        with open(baseline_path) as f:
+            data = json.load(f)
+        assert data["metrics"][0]["value"] == 85
 
 
 class TestResetBaseline:

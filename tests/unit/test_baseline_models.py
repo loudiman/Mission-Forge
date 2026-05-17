@@ -78,27 +78,27 @@ class TestSubMissionBaselineMetric:
             )
         assert "Value type" in str(exc_info.value)
 
-    def test_metric_with_mismatched_value_type_int_float(self):
-        """Test metric with value type mismatch (int vs float)."""
-        with pytest.raises(ValidationError) as exc_info:
-            SubMissionBaselineMetric(
-                metric_id="corba_references_count",
-                description="Count CORBA references",
-                baseline_target=0,
-                value=0.0,  # float instead of int
-            )
-        assert "Value type" in str(exc_info.value)
+    def test_metric_with_numeric_type_compatibility_int_float(self):
+        """Test metric allows int/float interchangeability."""
+        # int target, float value - should be allowed
+        metric = SubMissionBaselineMetric(
+            metric_id="corba_references_count",
+            description="Count CORBA references",
+            baseline_target=0,
+            value=0.0,  # float instead of int - allowed for numeric types
+        )
+        assert metric.value == 0.0
 
-    def test_metric_with_mismatched_value_type_float_int(self):
-        """Test metric with value type mismatch (float vs int)."""
-        with pytest.raises(ValidationError) as exc_info:
-            SubMissionBaselineMetric(
-                metric_id="test_coverage",
-                description="Test coverage percentage",
-                baseline_target=85.0,
-                value=85,  # int instead of float
-            )
-        assert "Value type" in str(exc_info.value)
+    def test_metric_with_numeric_type_compatibility_float_int(self):
+        """Test metric allows float/int interchangeability."""
+        # float target, int value - should be allowed
+        metric = SubMissionBaselineMetric(
+            metric_id="test_coverage",
+            description="Test coverage percentage",
+            baseline_target=85.0,
+            value=85,  # int instead of float - allowed for numeric types
+        )
+        assert metric.value == 85
 
     def test_empty_metric_id_raises_error(self):
         """Test that empty metric_id raises validation error."""

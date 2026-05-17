@@ -137,7 +137,15 @@ class BaselineService:
             if metric.value is not None:
                 target_type = type(metric.baseline_target)
                 value_type = type(metric.value)
-                if target_type != value_type:
+                
+                # Allow numeric type compatibility (int/float are interchangeable)
+                # But exclude bool since bool is a subclass of int in Python
+                numeric_types = (int, float)
+                is_target_numeric = isinstance(metric.baseline_target, numeric_types) and not isinstance(metric.baseline_target, bool)
+                is_value_numeric = isinstance(metric.value, numeric_types) and not isinstance(metric.value, bool)
+                is_numeric_compatible = is_target_numeric and is_value_numeric
+                
+                if not is_numeric_compatible and target_type != value_type:
                     raise BaselineValidationError(
                         f"Type mismatch for metric '{metric.metric_id}' in {sub_mission_id}: "
                         f"expected {target_type.__name__}, got {value_type.__name__}",
