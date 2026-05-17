@@ -76,3 +76,5 @@ Icon
 *.swp
 *.swo
 *~
+
+.code-review-graph
