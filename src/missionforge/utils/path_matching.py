@@ -47,12 +47,12 @@ def matches_patterns(
         if base_path:
             try:
                 relative_path = file_path.relative_to(base_path)
-                path_str = str(relative_path)
+                path_str = relative_path.as_posix()
             except ValueError:
                 # file_path is not relative to base_path
-                path_str = str(file_path)
+                path_str = file_path.as_posix()
         else:
-            path_str = str(file_path)
+            path_str = file_path.as_posix()
 
         return spec.match_file(path_str)
     except Exception as e:
@@ -143,7 +143,7 @@ def validate_paths_against_scope(
         ...     forbidden_patterns=["**/secret.py"]
         ... )
         >>> print(result["valid"])  # False
-        >>> print(result["forbidden_files"])  # [Path("src/secret.py")]
+        >>> print(result["forbidden_files"])  # ["src/secret.py"]
     """
     forbidden_patterns = forbidden_patterns or []
     allowed_files: list[str] = []
@@ -153,14 +153,14 @@ def validate_paths_against_scope(
     for file_path in changed_files:
         # Check forbidden patterns first
         if forbidden_patterns and matches_patterns(file_path, forbidden_patterns, base_path):
-            forbidden_files.append(str(file_path))
+            forbidden_files.append(file_path.as_posix())
             continue
 
         # Check allowed patterns
         if allowed_patterns and matches_patterns(file_path, allowed_patterns, base_path):
-            allowed_files.append(str(file_path))
+            allowed_files.append(file_path.as_posix())
         else:
-            out_of_scope_files.append(str(file_path))
+            out_of_scope_files.append(file_path.as_posix())
 
     # Validation passes if no forbidden or out-of-scope files
     valid = len(forbidden_files) == 0 and len(out_of_scope_files) == 0

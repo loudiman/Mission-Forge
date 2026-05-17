@@ -220,6 +220,7 @@ class TestRealWorldScenarios:
         assert result.success is True
         assert "PASS" in result.stdout
 
+    @pytest.mark.skipif(sys.platform == "win32", reason=".sh scripts are not directly executable on Windows")
     def test_custom_test_script(self, tmp_path):
         """Test custom test script execution."""
         # Create a simple test script
