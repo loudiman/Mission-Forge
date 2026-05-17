@@ -1,0 +1,23 @@
+{
+  "sub_mission_id": "MF-001-A",
+  "metrics": [
+    {
+      "metric_id": "rest_endpoint_exists",
+      "description": "Metric: rest_endpoint_exists",
+      "baseline_target": true,
+      "value": false
+    },
+    {
+      "metric_id": "corba_references_count",
+      "description": "Metric: corba_references_count",
+      "baseline_target": 0,
+      "value": 5
+    },
+    {
+      "metric_id": "test_coverage",
+      "description": "Metric: test_coverage",
+      "baseline_target": 85.0,
+      "value": 78.5
+    }
+  ]
+}
