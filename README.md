@@ -161,24 +161,24 @@ PowerShell and Windows Terminal (the default on Windows 11) handle Unicode nativ
 
 ```bash
 # 1. Initialize a mission workspace
-missionforge init MF-001
+uv run missionforge init MF-001
 
 # 2. Edit .missionforge/missions/MF-001/mission.yaml with your goal
 
 # 3. Decompose into sub-missions (guided wizard)
-missionforge decompose MF-001
+uv run missionforge decompose MF-001
 
 # 4. Create sub-mission files, then validate each one
-missionforge validate-submission MF-001 MF-001-A
+uv run missionforge validate-submission MF-001 MF-001-A
 
 # 5. Generate a dependency-resolved execution plan
-missionforge plan MF-001
+uv run missionforge plan MF-001
 
 # 6. Find what to work on next
-missionforge next MF-001
+uv run missionforge next MF-001
 
 # 7. Generate a PR-ready evidence report
-missionforge report MF-001
+uv run missionforge report MF-001
 ```
 
 ---
@@ -188,7 +188,7 @@ missionforge report MF-001
 ### Step 1 · Initialize
 
 ```bash
-missionforge init MF-001
+uv run missionforge init MF-001
 ```
 
 Creates the workspace structure:
@@ -221,7 +221,7 @@ forbidden_paths:
 ### Step 3 · Decompose
 
 ```bash
-missionforge decompose MF-001
+uv run missionforge decompose MF-001
 ```
 
 The decompose command provides a **guided workflow**: it validates the parent mission, creates the `sub-missions/` directory, displays YAML templates, shows validation instructions, and prints the current status of all sub-missions in a rich table.
@@ -247,7 +247,7 @@ metrics:
 ### Step 5 · Validate
 
 ```bash
-missionforge validate-submission MF-001 MF-001-A
+uv run missionforge validate-submission MF-001 MF-001-A
 ```
 
 **Validation checks:**
@@ -261,7 +261,7 @@ missionforge validate-submission MF-001 MF-001-A
 ### Step 6 · Plan
 
 ```bash
-missionforge plan MF-001
+uv run missionforge plan MF-001
 ```
 
 Automatically resolves the dependency graph using **topological sort (Kahn's algorithm)**, detects circular dependencies, computes parallelism levels, and writes a fully resolved `plan.yaml`.
@@ -270,14 +270,14 @@ Automatically resolves the dependency graph using **topological sort (Kahn's alg
 
 ```bash
 # Find the next sub-mission ready for execution
-missionforge next MF-001
+uv run missionforge next MF-001
 
 # Capture baseline metrics before starting
-missionforge baseline capture MF-001-A
+uv run missionforge baseline capture MF-001-A
 
 # After completing work, commit baseline and generate a PR-ready report
-missionforge baseline commit MF-001-A
-missionforge report MF-001
+uv run missionforge baseline commit MF-001-A
+uv run missionforge report MF-001
 ```
 
 ---
