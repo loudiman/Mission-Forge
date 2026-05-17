@@ -1,8 +1,8 @@
 """Unit tests for ValidationService metric logic."""
 
-import pytest
 from unittest.mock import MagicMock
 
+from missionforge.core.validation_service import ValidationService
 from missionforge.core.workspace import Workspace
 from missionforge.models.schemas import (
     DeterministicEvidence,
@@ -11,7 +11,6 @@ from missionforge.models.schemas import (
     TestResults,
     ValidationMetric,
 )
-from missionforge.core.validation_service import ValidationService
 
 
 def _make_service() -> ValidationService:

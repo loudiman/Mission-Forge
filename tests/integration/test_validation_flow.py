@@ -101,8 +101,8 @@ def mission_with_baseline(
 
 def _no_git_changes(cwd=None):
     """Helper to patch git calls to return no changes."""
+
     from missionforge.git.operations import GitStatus
-    from pathlib import Path
     return GitStatus(staged=[], unstaged=[], untracked=[], deleted=[], renamed={})
 
 
@@ -399,8 +399,9 @@ class TestValidationCommitErrors:
 class TestValidationScopeAndBlocked:
     def _patch_git_with_files(self, files: list[Path]):
         """Return context managers patching git to return specific staged files."""
-        from missionforge.git.operations import GitStatus
         from pathlib import Path as _Path
+
+        from missionforge.git.operations import GitStatus
         git_status = GitStatus(staged=files, unstaged=[], untracked=[], deleted=[], renamed={})
         return (
             patch("missionforge.core.validation_service.get_repo_root", return_value=_Path(".")),

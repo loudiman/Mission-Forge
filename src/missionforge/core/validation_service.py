@@ -4,7 +4,7 @@ import json
 import os
 import shlex
 import stat
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from ..git.operations import get_changed_files, get_repo_root, get_status
@@ -182,7 +182,7 @@ class ValidationService:
 
         # Determine overall status
         validation.status = self._determine_overall_status(validation)
-        validation.timestamp = datetime.now(timezone.utc).isoformat()
+        validation.timestamp = datetime.now(UTC).isoformat()
 
         out_path = self.workspace.validation_path(sub_mission_id)
         out_path.parent.mkdir(parents=True, exist_ok=True)

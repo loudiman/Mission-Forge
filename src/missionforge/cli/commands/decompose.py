@@ -40,7 +40,7 @@ def decompose_command(
 
     # Step 1: Validate parent mission exists
     console.print(f"\n[bold cyan]Step 1:[/bold cyan] Validating parent mission {mission_id}...")
-    
+
     if not mission_file.exists():
         console.print(f"[red]Error:[/red] Mission {mission_id} not found")
         console.print(f"Expected: {mission_file}")
@@ -78,32 +78,32 @@ def decompose_command(
         raise typer.Exit(1)
 
     # Step 2: Create sub-missions directory
-    console.print(f"\n[bold cyan]Step 2:[/bold cyan] Setting up sub-missions directory...")
-    
+    console.print("\n[bold cyan]Step 2:[/bold cyan] Setting up sub-missions directory...")
+
     sub_missions_dir = mission_path / "sub-missions"
     sub_missions_dir.mkdir(exist_ok=True)
-    
+
     console.print(f"[green]✓[/green] Created: {sub_missions_dir}")
 
     # Step 3: Display instructions and templates
-    console.print(f"\n[bold cyan]Step 3:[/bold cyan] Create sub-mission files")
-    
+    console.print("\n[bold cyan]Step 3:[/bold cyan] Create sub-mission files")
+
     _display_decomposition_instructions(mission_id, parent_mission.goal, sub_missions_dir)
-    
+
     # Step 4: Display sub-mission template
-    console.print(f"\n[bold cyan]Step 4:[/bold cyan] Sub-mission template")
+    console.print("\n[bold cyan]Step 4:[/bold cyan] Sub-mission template")
     _display_sub_mission_template(mission_id)
 
     # Step 5: Display validation guidance
-    console.print(f"\n[bold cyan]Step 5:[/bold cyan] Validate sub-missions as you create them")
+    console.print("\n[bold cyan]Step 5:[/bold cyan] Validate sub-missions as you create them")
     _display_validation_guidance(mission_id, sub_missions_dir)
 
     # Step 6: Display plan.yaml guidance
-    console.print(f"\n[bold cyan]Step 6:[/bold cyan] Create execution plan")
+    console.print("\n[bold cyan]Step 6:[/bold cyan] Create execution plan")
     _display_plan_guidance(mission_id, mission_path)
 
     # Step 7: Check for existing sub-missions
-    console.print(f"\n[bold cyan]Current Status:[/bold cyan]")
+    console.print("\n[bold cyan]Current Status:[/bold cyan]")
     _display_current_status(sub_missions_dir, mission_path, parent_mission.id)
 
     # Final summary
@@ -122,7 +122,7 @@ def _display_decomposition_instructions(
     mission_id: str, parent_goal: str, sub_missions_dir: Path
 ) -> None:
     """Display instructions for Bob on how to decompose the mission."""
-    
+
     instructions = f"""[bold]Instructions for Bob:[/bold]
 
 1. [cyan]Read the codebase[/cyan] to understand the current structure
@@ -138,13 +138,13 @@ def _display_decomposition_instructions(
 • allowed_paths should not overlap between sub-missions
 • Define clear dependencies using depends_on field
 """
-    
+
     console.print(Panel(instructions, title="📋 Decomposition Guide", border_style="cyan"))
 
 
 def _display_sub_mission_template(mission_id: str) -> None:
     """Display sub-mission YAML template."""
-    
+
     template = f"""id: {mission_id}-A
 parent: {mission_id}
 title: "Short descriptive title"
@@ -170,14 +170,14 @@ metrics:
 # Test command (optional, inherits from parent if not specified)
 test_command: "pytest tests/test_module_a.py -v"
 """
-    
+
     syntax = Syntax(template, "yaml", theme="monokai", line_numbers=True)
     console.print(Panel(syntax, title=f"📄 Template: {mission_id}-A.yaml", border_style="blue"))
 
 
 def _display_validation_guidance(mission_id: str, sub_missions_dir: Path) -> None:
     """Display guidance on validating sub-missions."""
-    
+
     guidance = f"""After creating each sub-mission file, validate it:
 
 [cyan]Command:[/cyan]
@@ -193,13 +193,13 @@ def _display_validation_guidance(mission_id: str, sub_missions_dir: Path) -> Non
 
 [yellow]Tip:[/yellow] Validate frequently to catch errors early!
 """
-    
+
     console.print(Panel(guidance, title="🔍 Validation", border_style="yellow"))
 
 
 def _display_plan_guidance(mission_id: str, mission_path: Path) -> None:
     """Display guidance for creating plan.yaml."""
-    
+
     plan_template = f"""# Execution plan for {mission_id}
 
 # Ordered list of sub-missions to execute
@@ -214,9 +214,9 @@ dependency_graph:
   {mission_id}-B: [{mission_id}-A]  # Depends on A
   {mission_id}-C: [{mission_id}-A, {mission_id}-B]  # Depends on both A and B
 """
-    
+
     syntax = Syntax(plan_template, "yaml", theme="monokai", line_numbers=True)
-    
+
     guidance = f"""Create [cyan]plan.yaml[/cyan] in: {mission_path}
 
 This file defines the execution order and dependencies.
@@ -227,7 +227,7 @@ This file defines the execution order and dependencies.
 • No circular dependencies allowed
 • Dependencies must exist in execution_order
 """
-    
+
     console.print(Panel(guidance, title="📊 Execution Plan", border_style="magenta"))
     console.print(syntax)
 
@@ -236,7 +236,7 @@ def _display_current_status(
     sub_missions_dir: Path, mission_path: Path, parent_id: str
 ) -> None:
     """Display current status of sub-missions and plan."""
-    
+
     table = Table(title="Current Files", show_header=True, header_style="bold cyan")
     table.add_column("File", style="cyan")
     table.add_column("Status", style="green")
@@ -244,13 +244,13 @@ def _display_current_status(
 
     # Check for sub-mission files
     sub_mission_files = list(sub_missions_dir.glob("*.yaml")) if sub_missions_dir.exists() else []
-    
+
     if sub_mission_files:
         for sub_file in sorted(sub_mission_files):
             # Validate the file
             try:
                 sub_mission = SchemaValidator.validate_sub_mission_file(sub_file)
-                
+
                 # Check parent relationship
                 if sub_mission.parent != parent_id:
                     status = "❌ Parent mismatch"
@@ -264,11 +264,11 @@ def _display_current_status(
                     else:
                         status = "❌ Invalid ID"
                         validation = f"Must match: {parent_id}-[A-Z]"
-                        
+
             except Exception as e:
                 status = "❌ Invalid"
                 validation = str(e)[:50] + "..." if len(str(e)) > 50 else str(e)
-            
+
             table.add_row(sub_file.name, status, validation)
     else:
         table.add_row("(no sub-missions yet)", "—", "Create files to begin")
@@ -378,7 +378,7 @@ def validate_submission_command(
     if sub_mission.depends_on:
         available_missions = _get_available_sub_missions(sub_missions_dir)
         missing_deps = [dep for dep in sub_mission.depends_on if dep not in available_missions]
-        
+
         if missing_deps:
             errors.append(
                 f"Missing dependencies: {', '.join(missing_deps)}\n"
@@ -422,28 +422,28 @@ def _check_path_overlaps(
 ) -> list[str]:
     """Check for overlapping allowed_paths with other sub-missions."""
     overlaps = []
-    
+
     if not sub_mission.allowed_paths:
         return overlaps
-    
+
     current_spec = pathspec.PathSpec.from_lines("gitignore", sub_mission.allowed_paths)
-    
+
     for other_file in sub_missions_dir.glob("*.yaml"):
         if other_file == current_file:
             continue
-        
+
         try:
             other_mission = SchemaValidator.validate_sub_mission_file(other_file)
             if not other_mission.allowed_paths:
                 continue
-            
+
             # Check if any paths overlap
             for path in other_mission.allowed_paths:
                 if current_spec.match_file(path):
                     overlaps.append(
                         f"Path '{path}' from {other_mission.id} overlaps with this sub-mission's allowed_paths"
                     )
-            
+
             # Check reverse
             other_spec = pathspec.PathSpec.from_lines("gitignore", other_mission.allowed_paths)
             for path in sub_mission.allowed_paths:
@@ -454,17 +454,17 @@ def _check_path_overlaps(
         except Exception:
             # Skip invalid files
             continue
-    
+
     return overlaps
 
 
 def _get_available_sub_missions(sub_missions_dir: Path) -> list[str]:
     """Get list of valid sub-mission IDs."""
     missions = []
-    
+
     if not sub_missions_dir.exists():
         return missions
-    
+
     for sub_file in sub_missions_dir.glob("*.yaml"):
         try:
             sub_mission = SchemaValidator.validate_sub_mission_file(sub_file)
@@ -472,7 +472,7 @@ def _get_available_sub_missions(sub_missions_dir: Path) -> list[str]:
         except Exception:
             # Skip invalid files
             continue
-    
+
     return missions
 
 
