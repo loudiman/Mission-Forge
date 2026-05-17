@@ -9,7 +9,7 @@ from ..core.config import MissionForgeConfig
 from ..core.exceptions import MissionForgeError
 from ..core.logging import setup_logging
 from ..core.workspace import Workspace
-from .commands import mission, workspace
+from .commands import baseline, mission, workspace
 from .commands.workspace import init_workspace
 
 app = typer.Typer(
@@ -53,6 +53,7 @@ def get_config() -> MissionForgeConfig:
 
 # Register command groups
 app.add_typer(workspace.app, name="workspace")
+app.add_typer(baseline.app, name="baseline")
 app.command("mission", context_settings={"allow_extra_args": True})(mission.mission_command)
 
 

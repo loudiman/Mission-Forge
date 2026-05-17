@@ -1,0 +1,18 @@
+id: MF-001-A
+parent: MF-001
+title: "Test Sub-Mission with Metrics"
+goal: |
+  Test sub-mission for baseline testing
+depends_on: []
+allowed_paths:
+  - "src/test/**"
+metrics:
+  rest_endpoint_exists:
+    target: true
+  corba_references_count:
+    target: 0
+  test_coverage:
+    target: 85.0
+test_command: "pytest tests/"
+
+# Made with Bob
