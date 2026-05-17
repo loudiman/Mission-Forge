@@ -4,6 +4,36 @@
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
+def _has_balanced_glob_brackets(pattern: str) -> bool:
+    """Check glob character class brackets are balanced.
+
+    Covers standard gitignore bracket syntax only. Does not handle
+    negated classes ([^...]) or a literal ] as the first character
+    inside brackets ([]abc]). Both are unused in gitignore patterns.
+    """
+    escaped = False
+    open_bracket = False
+
+    for char in pattern:
+        if escaped:
+            escaped = False
+            continue
+        if char == "\\":
+            escaped = True
+            continue
+        if char == "[":
+            if open_bracket:
+                return False
+            open_bracket = True
+            continue
+        if char == "]":
+            if not open_bracket:
+                return False
+            open_bracket = False
+
+    return not open_bracket
+
+
 class MetricDefinition(BaseModel):
     """Definition of a metric with constraints."""
 
@@ -68,8 +98,10 @@ class ParentMission(BaseModel):
         import pathspec
 
         for pattern in v:
+            if not _has_balanced_glob_brackets(pattern):
+                raise ValueError(f"Invalid path pattern '{pattern}': unbalanced brackets")
             try:
-                pathspec.PathSpec.from_lines("gitwildmatch", [pattern])
+                pathspec.PathSpec.from_lines("gitignore", [pattern])
             except Exception as e:
                 raise ValueError(f"Invalid path pattern '{pattern}': {e}") from e
         return v
@@ -146,8 +178,10 @@ class SubMission(BaseModel):
         import pathspec
 
         for pattern in v:
+            if not _has_balanced_glob_brackets(pattern):
+                raise ValueError(f"Invalid path pattern '{pattern}': unbalanced brackets")
             try:
-                pathspec.PathSpec.from_lines("gitwildmatch", [pattern])
+                pathspec.PathSpec.from_lines("gitignore", [pattern])
             except Exception as e:
                 raise ValueError(f"Invalid path pattern '{pattern}': {e}") from e
         return v
