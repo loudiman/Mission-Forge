@@ -268,7 +268,7 @@ def _display_current_status(
             except Exception as e:
                 status = "❌ Invalid"
                 validation = str(e)[:50] + "..." if len(str(e)) > 50 else str(e)
-            
+
             table.add_row(sub_file.name, status, validation)
     else:
         table.add_row("(no sub-missions yet)", "—", "Create files to begin")
