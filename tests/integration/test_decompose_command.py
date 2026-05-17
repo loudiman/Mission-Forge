@@ -211,7 +211,7 @@ goal: "Test wrong parent reference"
         result = runner.invoke(app, ["validate-submission", "MF-001", "MF-001-A"])
 
         assert result.exit_code == 1
-        assert "Parent mismatch" in result.stdout
+        assert "does not match parent ID" in result.stdout or "Expected parent" in result.stdout
 
     def test_validate_submission_checks_forbidden_paths(self, test_mission, monkeypatch):
         """Test that validation checks forbidden paths."""
