@@ -4,7 +4,6 @@
 import json
 from pathlib import Path
 
-import pytest
 from typer.testing import CliRunner
 
 from missionforge.cli.app import app
