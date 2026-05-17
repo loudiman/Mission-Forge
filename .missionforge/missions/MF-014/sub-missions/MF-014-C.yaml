@@ -1,0 +1,63 @@
+id: MF-014-C
+parent: MF-014
+title: "CORS, Caching, and API Documentation"
+goal: |
+  Add CORS configuration for local development, implement file caching to avoid
+  repeated disk reads, and set up comprehensive API documentation using OpenAPI/Swagger.
+  This makes the backend production-ready and developer-friendly.
+
+# Depends on API endpoints being implemented
+depends_on:
+  - MF-014-B
+
+# Paths this sub-mission can modify
+allowed_paths:
+  - "src/missionforge/backend/main.py"
+  - "src/missionforge/backend/middleware/**"
+  - "src/missionforge/backend/middleware/__init__.py"
+  - "src/missionforge/backend/middleware/cors.py"
+  - "src/missionforge/backend/cache/**"
+  - "src/missionforge/backend/cache/__init__.py"
+  - "src/missionforge/backend/cache/file_cache.py"
+  - "src/missionforge/backend/config.py"
+  - "src/missionforge/backend/repository.py"
+  - "src/missionforge/backend/models/**"
+  - "src/missionforge/backend/routers/**"
+  - "docs/api/**"
+  - "docs/api/openapi.json"
+  - "tests/unit/backend/test_cache.py"
+  - "tests/unit/backend/test_cors.py"
+  - "tests/integration/test_backend_api.py"
+  - ".missionforge/missions/MF-014/**"
+  - "missionforge/missions/MF-014/mission.yaml"
+
+# Metrics for this sub-mission
+metrics:
+  test_coverage:
+    min: 80.0
+    target: 90.0
+    description: "Caching logic must be well-tested"
+  lines_added:
+    target: 300
+    max: 400
+    description: "Keep middleware and caching focused"
+  files_changed:
+    target: 7
+    max: 10
+    description: "Limited to middleware and docs"
+
+# Test command for this sub-mission
+test_command: "pytest tests/unit/backend/test_cache.py tests/unit/backend/test_cors.py -v"
+
+# Tasks covered by this sub-mission
+tasks:
+  - "Add CORS configuration for local development"
+  - "Cache parsed files to avoid repeated disk reads"
+  - "Invalidate cache when files change (watch for mtime)"
+  - "Add API documentation (OpenAPI/Swagger)"
+  - "API documentation is accessible"
+  - "Use Pydantic models for response validation"
+
+# Made with Bob
+  - "src/missionforge/backend/middleware"
+  - "src/missionforge/backend/cache"
