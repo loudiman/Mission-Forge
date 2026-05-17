@@ -148,7 +148,7 @@ def verify_validation_output(base_dir: Path, mission_id: str) -> bool:
         ("sub_missions.passed", data.get("sub_missions", {}).get("passed") == 3),
         ("sub_missions.failed", data.get("sub_missions", {}).get("failed") == 0),
         ("sub_missions.blocked", data.get("sub_missions", {}).get("blocked") == 0),
-        ("forbidden_paths_check", data.get("forbidden_paths_check", {}).get("violated") == False),
+        ("forbidden_paths_check", not data.get("forbidden_paths_check", {}).get("violated")),
     ]
 
     all_passed = True
