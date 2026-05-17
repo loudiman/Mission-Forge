@@ -354,5 +354,103 @@ class ExecutionPlan(BaseModel):
 
         return self
 
+class SubMissionBaselineMetric(BaseModel):
+    """A single metric in a sub-mission baseline."""
+
+    metric_id: str = Field(..., description="Unique identifier for the metric")
+    description: str = Field(..., description="Human-readable description of what is measured")
+    baseline_target: bool | int | float | str = Field(
+        ..., description="Expected baseline value before implementation"
+    )
+    value: bool | int | float | str | None = Field(
+        None, description="Actual measured value (null until filled by Bob)"
+    )
+
+    @field_validator("metric_id")
+    @classmethod
+    def validate_metric_id(cls, v: str) -> str:
+        """Ensure metric_id is not empty."""
+        if not v.strip():
+            raise ValueError("metric_id cannot be empty")
+        return v
+
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, v: str) -> str:
+        """Ensure description is not empty."""
+        if not v.strip():
+            raise ValueError("description cannot be empty")
+        return v
+
+    @model_validator(mode="after")
+    def validate_value_type(self) -> "SubMissionBaselineMetric":
+        """Ensure value type matches baseline_target type when value is not None."""
+        if self.value is not None:
+            target_type = type(self.baseline_target)
+            value_type = type(self.value)
+            
+            # Allow numeric type compatibility (int/float are interchangeable)
+            # But exclude bool since bool is a subclass of int in Python
+            numeric_types = (int, float)
+            is_target_numeric = isinstance(self.baseline_target, numeric_types) and not isinstance(self.baseline_target, bool)
+            is_value_numeric = isinstance(self.value, numeric_types) and not isinstance(self.value, bool)
+            
+            if is_target_numeric and is_value_numeric:
+                return self
+            
+            # For non-numeric types, require exact match
+            if target_type != value_type:
+                raise ValueError(
+                    f"Value type ({value_type.__name__}) does not match "
+                    f"baseline_target type ({target_type.__name__})"
+                )
+        return self
+
+
+class SubMissionBaseline(BaseModel):
+    """Baseline for sub-mission custom metrics."""
+
+    sub_mission_id: str = Field(..., description="Sub-mission identifier (e.g., MF-001-A)")
+    timestamp: str | None = Field(
+        None, description="ISO 8601 timestamp when baseline was committed"
+    )
+    status: str | None = Field(
+        None, description="Baseline status: 'captured' or 'committed'"
+    )
+    metrics: list[SubMissionBaselineMetric] = Field(
+        ..., description="List of baseline metrics"
+    )
+
+    @field_validator("sub_mission_id")
+    @classmethod
+    def validate_sub_mission_id(cls, v: str) -> str:
+        """Validate sub-mission ID format."""
+        import re
+
+        pattern = r"^[A-Z]{2,4}-\d{3}-[A-Z]$"
+        if not re.match(pattern, v):
+            raise ValueError(
+                f"Invalid sub-mission ID format: {v}. "
+                "Must match pattern: [A-Z]{{2,4}}-\\d{{3}}-[A-Z] (e.g., MF-001-A)"
+            )
+        return v
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str | None) -> str | None:
+        """Validate status is one of allowed values."""
+        if v is not None and v not in ("captured", "committed"):
+            raise ValueError(f"Invalid status: {v}. Must be 'captured' or 'committed'")
+        return v
+
+    @field_validator("metrics")
+    @classmethod
+    def validate_metrics_not_empty(cls, v: list[SubMissionBaselineMetric]) -> list[SubMissionBaselineMetric]:
+        """Ensure at least one metric is defined."""
+        if not v:
+            raise ValueError("At least one metric must be defined")
+        return v
+
+
 
 # Made with Bob
