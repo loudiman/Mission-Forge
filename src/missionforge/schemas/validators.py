@@ -288,7 +288,7 @@ class SchemaValidator:
             return
 
         forbidden_spec = pathspec.PathSpec.from_lines(
-            "gitwildmatch", parent_mission.forbidden_paths
+            "gitignore", parent_mission.forbidden_paths
         )
 
         conflicts = []
