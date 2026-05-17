@@ -1,6 +1,7 @@
 # Made with Bob
 """Plan command - dependency graph resolution and execution order."""
 
+import re
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -11,7 +12,7 @@ from rich.console import Console
 from rich.panel import Panel
 
 from ...core.workspace import Workspace
-from ...models.schemas import ExecutionPlan, SubMission
+from ...models.schemas import ExecutionPlan, PathOverlap, SubMission
 from ...schemas import SchemaValidator
 
 console = Console()
@@ -30,7 +31,6 @@ def plan_command(
     mission_path = workspace.mission_path(mission_id)
     mission_file = mission_path / "mission.yaml"
 
-    # Step 1: Load parent mission
     console.print(f"\n[bold cyan]Step 1:[/bold cyan] Loading parent mission {mission_id}...")
 
     if not mission_file.exists():
@@ -44,13 +44,16 @@ def plan_command(
         console.print(f"[red]Error loading parent mission:[/red] {e}")
         raise typer.Exit(1) from None
 
-    console.print("[green]✓[/green] Parent mission loaded")
+    console.print("[green]OK[/green] Parent mission loaded")
 
-    # Step 2: Scan sub-missions
     console.print("\n[bold cyan]Step 2:[/bold cyan] Scanning sub-missions...")
 
     sub_missions_dir = mission_path / "sub-missions"
-    sub_missions = _load_sub_missions(sub_missions_dir)
+    try:
+        sub_missions = _load_sub_missions(sub_missions_dir)
+    except ValueError as e:
+        console.print(Panel(str(e), title="[red]Sub-Mission Errors[/red]", border_style="red"))
+        raise typer.Exit(1) from None
 
     if not sub_missions:
         console.print("[red]Error:[/red] No sub-missions found")
@@ -59,10 +62,10 @@ def plan_command(
 
     sub_mission_ids = [sm.id for sm in sub_missions]
     console.print(
-        f"[green]✓[/green] Found {len(sub_missions)} sub-missions: {', '.join(sub_mission_ids)}"
+        f"[green]OK[/green] Found {len(sub_missions)} sub-missions: "
+        f"{', '.join(sub_mission_ids)}"
     )
 
-    # Step 3: Validate dependencies
     console.print("\n[bold cyan]Step 3:[/bold cyan] Validating dependencies...")
 
     dep_errors = _validate_all_dependencies(sub_missions)
@@ -70,43 +73,44 @@ def plan_command(
     all_errors = dep_errors + parent_errors
 
     if all_errors:
-        error_lines = "\n".join(f"• {e}" for e in all_errors)
+        error_lines = "\n".join(f"- {error}" for error in all_errors)
         console.print(Panel(error_lines, title="[red]Validation Errors[/red]", border_style="red"))
         raise typer.Exit(1)
 
-    console.print("[green]✓[/green] All dependencies valid")
-    console.print("[green]✓[/green] All parent references correct")
+    console.print("[green]OK[/green] All dependencies valid")
+    console.print("[green]OK[/green] All parent references correct")
 
-    # Build dependency graph and detect cycles
     graph = _build_dependency_graph(sub_missions)
 
     has_cycle, cycle_path = _detect_cycles(graph)
     if has_cycle:
-        cycle_str = " → ".join(cycle_path)
+        cycle_str = " -> ".join(cycle_path)
         console.print(
             Panel(
                 f"Cycle path:\n  {cycle_str}\n\n"
                 "[yellow]To fix:[/yellow] Remove one of these dependencies to break the cycle",
-                title="[red]✗ Circular dependency detected![/red]",
+                title="[red]Circular dependency detected[/red]",
                 border_style="red",
             )
         )
         console.print("[red]Error:[/red] Cannot generate plan with circular dependencies")
         raise typer.Exit(1)
 
-    console.print("[green]✓[/green] No circular dependencies detected")
+    console.print("[green]OK[/green] No circular dependencies detected")
 
-    # Step 4: Check path overlaps
     console.print("\n[bold cyan]Step 4:[/bold cyan] Checking path overlaps...")
 
-    overlap_warnings = _check_all_path_overlaps(sub_missions)
-    if overlap_warnings:
-        for warning in overlap_warnings:
-            console.print(f"[yellow]⚠[/yellow] Warning: {warning}")
+    path_overlaps = _check_all_path_overlaps(sub_missions)
+    if path_overlaps:
+        for overlap in path_overlaps:
+            patterns = ", ".join(overlap.overlapping_patterns)
+            console.print(
+                f"[yellow]Warning:[/yellow] {overlap.sub_mission_a} and "
+                f"{overlap.sub_mission_b} have overlapping allowed_paths ({patterns})"
+            )
     else:
-        console.print("[green]✓[/green] No path overlaps detected")
+        console.print("[green]OK[/green] No path overlaps detected")
 
-    # Step 5: Compute execution order
     console.print("\n[bold cyan]Step 5:[/bold cyan] Computing execution order...")
 
     try:
@@ -115,38 +119,75 @@ def plan_command(
         console.print(f"[red]Error:[/red] {e}")
         raise typer.Exit(1) from None
 
-    console.print("[green]✓[/green] Topological order computed")
+    console.print("[green]OK[/green] Topological order computed")
 
     plan = ExecutionPlan(
         mission_id=mission_id,
         decomposition_rationale=parent_mission.decomposition_rationale,
+        sub_missions=execution_order,
         execution_order=execution_order,
         dependency_graph=graph,
+        path_overlaps=path_overlaps,
     )
     parallelism = _compute_parallelism_levels(graph, execution_order)
 
     _display_plan_summary(plan, parallelism)
+
+    try:
+        _sync_parent_sub_missions(mission_file, execution_order)
+    except Exception as e:
+        console.print(f"[red]Error syncing mission.yaml:[/red] {e}")
+        raise typer.Exit(1) from None
+
     _write_plan_file(mission_path, plan, mission_id, parallelism)
 
     plan_file = mission_path / "plan.yaml"
-    console.print(f"\n[green]✓[/green] Plan written to: {plan_file}")
+    console.print(f"\n[green]OK[/green] Plan written to: {plan_file}")
 
 
 def _load_sub_missions(sub_missions_dir: Path) -> list[SubMission]:
-    """Load all valid sub-mission YAML files from directory."""
-    sub_missions: list[SubMission] = []
+    """Load sub-mission YAML files from canonical and legacy layouts."""
+    loaded: dict[str, tuple[SubMission, Path]] = {}
+    errors: list[str] = []
 
     if not sub_missions_dir.exists():
-        return sub_missions
+        return []
 
-    for sub_file in sorted(sub_missions_dir.glob("*.yaml")):
+    def load_file(sub_file: Path, expected_id: str) -> None:
         try:
             sub_mission = SchemaValidator.validate_sub_mission_file(sub_file)
-            sub_missions.append(sub_mission)
-        except Exception:
-            console.print(f"[yellow]⚠[/yellow] Skipping invalid file: {sub_file.name}")
+        except Exception as e:
+            errors.append(f"{sub_file}: {e}")
+            return
 
-    return sub_missions
+        if sub_mission.id != expected_id:
+            errors.append(
+                f"{sub_file}: YAML id '{sub_mission.id}' does not match "
+                f"file or directory name '{expected_id}'"
+            )
+
+        if sub_mission.id in loaded:
+            existing_path = loaded[sub_mission.id][1]
+            errors.append(
+                f"Duplicate sub-mission ID '{sub_mission.id}' found in "
+                f"{existing_path} and {sub_file}"
+            )
+            return
+
+        loaded[sub_mission.id] = (sub_mission, sub_file)
+
+    for sub_dir in sorted(path for path in sub_missions_dir.iterdir() if path.is_dir()):
+        sub_file = sub_dir / "sub-mission.yaml"
+        if sub_file.exists():
+            load_file(sub_file, sub_dir.name)
+
+    for sub_file in sorted(sub_missions_dir.glob("*.yaml")):
+        load_file(sub_file, sub_file.stem)
+
+    if errors:
+        raise ValueError("\n".join(f"- {error}" for error in errors))
+
+    return [loaded[sub_id][0] for sub_id in sorted(loaded)]
 
 
 def _build_dependency_graph(sub_missions: list[SubMission]) -> dict[str, list[str]]:
@@ -217,10 +258,8 @@ def _detect_cycles(graph: dict[str, list[str]]) -> tuple[bool, list[str]]:
 
 def _topological_sort(graph: dict[str, list[str]]) -> list[str]:
     """Compute topological order using Kahn's algorithm. Raises ValueError if cycle exists."""
-    # in_degree = number of unresolved dependencies per node
     in_degree: dict[str, int] = {node: len(graph[node]) for node in graph}
 
-    # successors[A] = nodes that depend on A (must be processed after A)
     successors: dict[str, list[str]] = {node: [] for node in graph}
     for node in graph:
         for dep in graph[node]:
@@ -245,30 +284,38 @@ def _topological_sort(graph: dict[str, list[str]]) -> list[str]:
     return result
 
 
-def _check_all_path_overlaps(sub_missions: list[SubMission]) -> list[str]:
-    """Check for overlapping allowed_paths between sub-mission pairs (bidirectional)."""
-    warnings: list[str] = []
+def _check_all_path_overlaps(sub_missions: list[SubMission]) -> list[PathOverlap]:
+    """Check for overlapping allowed_paths between sub-mission pairs."""
+    warnings: list[PathOverlap] = []
 
     for i, sm_a in enumerate(sub_missions):
         if not sm_a.allowed_paths:
             continue
+
         spec_a = pathspec.PathSpec.from_lines("gitignore", sm_a.allowed_paths)
 
         for sm_b in sub_missions[i + 1:]:
             if not sm_b.allowed_paths:
                 continue
 
-            # Forward: sm_b's concrete paths vs sm_a's patterns
-            overlap = any(spec_a.match_file(p) for p in sm_b.allowed_paths)
+            overlapping_patterns: set[str] = set()
 
-            # Reverse: sm_a's concrete paths vs sm_b's patterns (catches asymmetric globs)
-            if not overlap:
-                spec_b = pathspec.PathSpec.from_lines("gitignore", sm_b.allowed_paths)
-                overlap = any(spec_b.match_file(p) for p in sm_a.allowed_paths)
+            for path in sm_b.allowed_paths:
+                if spec_a.match_file(path):
+                    overlapping_patterns.add(path)
 
-            if overlap:
+            spec_b = pathspec.PathSpec.from_lines("gitignore", sm_b.allowed_paths)
+            for path in sm_a.allowed_paths:
+                if spec_b.match_file(path):
+                    overlapping_patterns.add(path)
+
+            if overlapping_patterns:
                 warnings.append(
-                    f"{sm_a.id} and {sm_b.id} have overlapping allowed_paths"
+                    PathOverlap(
+                        sub_mission_a=sm_a.id,
+                        sub_mission_b=sm_b.id,
+                        overlapping_patterns=sorted(overlapping_patterns),
+                    )
                 )
 
     return warnings
@@ -291,6 +338,35 @@ def _compute_parallelism_levels(
     return levels
 
 
+def _sync_parent_sub_missions(mission_file: Path, execution_order: list[str]) -> None:
+    """Update mission.yaml sub_missions while preserving unrelated text."""
+    lines = mission_file.read_text().splitlines()
+    block = ["sub_missions:", *(f"  - {mission_id}" for mission_id in execution_order)]
+
+    start_index = next(
+        (idx for idx, line in enumerate(lines) if re.match(r"^sub_missions\s*:", line)),
+        None,
+    )
+
+    if start_index is None:
+        if lines and lines[-1].strip():
+            lines.append("")
+        lines.extend(block)
+        mission_file.write_text("\n".join(lines) + "\n")
+        return
+
+    end_index = start_index + 1
+    top_level_key = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*\s*:")
+    while end_index < len(lines):
+        line = lines[end_index]
+        if line and not line.startswith((" ", "\t")) and top_level_key.match(line):
+            break
+        end_index += 1
+
+    new_lines = lines[:start_index] + block + lines[end_index:]
+    mission_file.write_text("\n".join(new_lines) + "\n")
+
+
 def _write_plan_file(
     mission_path: Path,
     plan: ExecutionPlan,
@@ -310,13 +386,17 @@ def _write_plan_file(
         header_lines.append(f"# Level {level}: {', '.join(parallelism[level])}")
     header_lines.append("")
 
-    plan_data: dict = {}
+    plan_data: dict[str, object] = {}
     if plan.mission_id:
         plan_data["mission_id"] = plan.mission_id
     if plan.decomposition_rationale:
         plan_data["decomposition_rationale"] = plan.decomposition_rationale
+    plan_data["sub_missions"] = plan.sub_missions
     plan_data["execution_order"] = plan.execution_order
     plan_data["dependency_graph"] = plan.dependency_graph
+    plan_data["path_overlaps"] = [
+        overlap.model_dump(mode="json") for overlap in plan.path_overlaps
+    ]
     yaml_content = yaml.dump(plan_data, default_flow_style=False, sort_keys=False)
 
     plan_file = mission_path / "plan.yaml"
@@ -346,6 +426,7 @@ def _display_plan_summary(
         f"[bold]Execution Order:[/bold]\n{order_lines}\n\n"
         f"[bold]Parallelism Analysis:[/bold]\n{level_lines}\n\n"
         "[dim]Note: Phase 1 executes sequentially.\n"
+        "Levels are dependency-only; check path_overlaps before parallel execution.\n"
         "Parallel execution coming in Phase 3.[/dim]"
     )
     console.print(Panel(content, title="Execution Plan", border_style="green"))

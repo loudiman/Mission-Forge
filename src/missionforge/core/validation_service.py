@@ -51,8 +51,7 @@ class ValidationService:
             validation_path.unlink()
 
         parent_id = sub_mission_id.rsplit("-", 1)[0]
-        sub_mission_dir = self.workspace.sub_mission_path(parent_id, sub_mission_id)
-        sub_mission_file = sub_mission_dir / "sub-mission.yaml"
+        sub_mission_file = self.workspace.sub_mission_definition_path(parent_id, sub_mission_id)
         sub_mission = SchemaValidator.validate_sub_mission_file(sub_mission_file)
 
         # Load baseline values for each metric

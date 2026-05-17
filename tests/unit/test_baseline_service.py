@@ -159,6 +159,29 @@ test_command: "pytest tests/"
         assert "bad_metric" in str(exc_info.value)
         assert "no target value" in str(exc_info.value)
 
+    def test_capture_baseline_supports_flat_sub_mission_definition(
+        self, baseline_service: BaselineService, workspace: Workspace
+    ):
+        """Test baseline capture can read legacy flat sub-mission YAML files."""
+        mission_path = workspace.mission_path("MF-001")
+        sub_missions_dir = mission_path / "sub-missions"
+        sub_missions_dir.mkdir(parents=True, exist_ok=True)
+        (sub_missions_dir / "MF-001-A.yaml").write_text("""id: MF-001-A
+parent: MF-001
+title: "Flat Sub-Mission"
+goal: "Test flat layout"
+metrics:
+  test_coverage:
+    target: 85.0
+""")
+
+        todo_path = baseline_service.capture_baseline("MF-001-A")
+
+        assert todo_path.exists()
+        with open(todo_path) as f:
+            data = json.load(f)
+        assert data["sub_mission_id"] == "MF-001-A"
+
 
 class TestCommitBaseline:
     """Tests for commit_baseline method."""

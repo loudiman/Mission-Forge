@@ -58,14 +58,28 @@ allowed_paths:
 """
 
 
-def _setup_workspace(tmp_path: Path, sub_missions: dict[str, str]) -> Path:
+def _setup_workspace(
+    tmp_path: Path,
+    sub_missions: dict[str, str],
+    *,
+    layout: str = "flat",
+    mission_yaml: str = MISSION_YAML,
+) -> Path:
     """Create a test workspace with the given sub-mission YAML files."""
     mission_dir = tmp_path / ".missionforge" / "missions" / "MF-001"
     sub_dir = mission_dir / "sub-missions"
     sub_dir.mkdir(parents=True)
-    (mission_dir / "mission.yaml").write_text(MISSION_YAML)
+    (mission_dir / "mission.yaml").write_text(mission_yaml)
+
     for filename, content in sub_missions.items():
-        (sub_dir / filename).write_text(content)
+        if layout == "canonical":
+            sub_id = Path(filename).stem
+            target_dir = sub_dir / sub_id
+            target_dir.mkdir(parents=True)
+            (target_dir / "sub-mission.yaml").write_text(content)
+        else:
+            (sub_dir / filename).write_text(content)
+
     return tmp_path
 
 
@@ -133,6 +147,19 @@ class TestPlanCommandSuccess:
         result = runner.invoke(app, ["plan", "MF-001"])
         assert result.exit_code == 0
 
+    def test_supports_canonical_sub_mission_layout(self, tmp_path, monkeypatch):
+        ws = _setup_workspace(
+            tmp_path,
+            {"MF-001-A.yaml": SUB_A, "MF-001-B.yaml": SUB_B_AFTER_A},
+            layout="canonical",
+        )
+        monkeypatch.chdir(ws)
+        result = runner.invoke(app, ["plan", "MF-001"])
+        assert result.exit_code == 0
+        plan_file = ws / ".missionforge" / "missions" / "MF-001" / "plan.yaml"
+        plan = SchemaValidator.validate_plan_file(plan_file)
+        assert plan.execution_order == ["MF-001-A", "MF-001-B"]
+
     def test_creates_plan_yaml(self, mission_linear, monkeypatch):
         monkeypatch.chdir(mission_linear)
         runner.invoke(app, ["plan", "MF-001"])
@@ -146,6 +173,7 @@ class TestPlanCommandSuccess:
         plan = SchemaValidator.validate_plan_file(plan_file)
         assert len(plan.execution_order) == 4
         assert len(plan.dependency_graph) == 4
+        assert plan.sub_missions == plan.execution_order
 
     def test_linear_order_correct(self, mission_linear, monkeypatch):
         monkeypatch.chdir(mission_linear)
@@ -226,6 +254,42 @@ class TestPlanCommandSuccess:
         plan = SchemaValidator.validate_plan_file(plan_file)
         assert plan.execution_order == ["MF-001-A"]
 
+    def test_syncs_parent_mission_sub_missions(self, mission_diamond, monkeypatch):
+        monkeypatch.chdir(mission_diamond)
+        runner.invoke(app, ["plan", "MF-001"])
+        mission_file = mission_diamond / ".missionforge" / "missions" / "MF-001" / "mission.yaml"
+        parent = SchemaValidator.validate_parent_mission_file(mission_file)
+        assert parent.sub_missions == ["MF-001-A", "MF-001-B", "MF-001-C", "MF-001-D"]
+
+    def test_persists_path_overlap_warnings(self, tmp_path, monkeypatch):
+        overlap_a = """id: MF-001-A
+parent: MF-001
+title: "Overlap A"
+goal: "Broad path"
+allowed_paths:
+  - "src/shared/**"
+"""
+        overlap_b = """id: MF-001-B
+parent: MF-001
+title: "Overlap B"
+goal: "Specific path"
+allowed_paths:
+  - "src/shared/config.py"
+"""
+        ws = _setup_workspace(
+            tmp_path,
+            {"MF-001-A.yaml": overlap_a, "MF-001-B.yaml": overlap_b},
+        )
+        monkeypatch.chdir(ws)
+        result = runner.invoke(app, ["plan", "MF-001"])
+        assert result.exit_code == 0
+        plan_file = ws / ".missionforge" / "missions" / "MF-001" / "plan.yaml"
+        plan = SchemaValidator.validate_plan_file(plan_file)
+        assert len(plan.path_overlaps) == 1
+        assert plan.path_overlaps[0].sub_mission_a == "MF-001-A"
+        assert plan.path_overlaps[0].sub_mission_b == "MF-001-B"
+        assert plan.path_overlaps[0].overlapping_patterns == ["src/shared/config.py"]
+
 
 class TestPlanCommandErrors:
     def test_detects_cycle_exit_code(self, mission_with_cycle, monkeypatch):
@@ -270,3 +334,34 @@ class TestPlanCommandErrors:
         monkeypatch.chdir(tmp_path)
         result = runner.invoke(app, ["plan", "MF-001"])
         assert "No sub-missions" in result.stdout
+
+    def test_invalid_sub_mission_blocks_plan(self, tmp_path, monkeypatch):
+        ws = _setup_workspace(tmp_path, {
+            "MF-001-A.yaml": SUB_A,
+            "MF-001-B.yaml": "id: [\n",
+        })
+        monkeypatch.chdir(ws)
+        result = runner.invoke(app, ["plan", "MF-001"])
+        assert result.exit_code == 1
+        assert "Sub-Mission Errors" in result.stdout
+        plan_file = ws / ".missionforge" / "missions" / "MF-001" / "plan.yaml"
+        assert not plan_file.exists()
+
+    def test_filename_id_mismatch_blocks_plan(self, tmp_path, monkeypatch):
+        mismatch = SUB_A.replace("id: MF-001-A", "id: MF-001-B")
+        ws = _setup_workspace(tmp_path, {"MF-001-A.yaml": mismatch})
+        monkeypatch.chdir(ws)
+        result = runner.invoke(app, ["plan", "MF-001"])
+        assert result.exit_code == 1
+        assert "does not match" in result.stdout
+
+    def test_duplicate_ids_across_layouts_block_plan(self, tmp_path, monkeypatch):
+        ws = _setup_workspace(tmp_path, {"MF-001-A.yaml": SUB_A})
+        sub_dir = ws / ".missionforge" / "missions" / "MF-001" / "sub-missions"
+        canonical_dir = sub_dir / "MF-001-A"
+        canonical_dir.mkdir()
+        (canonical_dir / "sub-mission.yaml").write_text(SUB_A)
+        monkeypatch.chdir(ws)
+        result = runner.invoke(app, ["plan", "MF-001"])
+        assert result.exit_code == 1
+        assert "Duplicate sub-mission ID" in result.stdout

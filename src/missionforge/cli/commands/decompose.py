@@ -247,7 +247,7 @@ def _display_current_status(
     table.add_column("Validation", style="yellow")
 
     # Check for sub-mission files
-    sub_mission_files = list(sub_missions_dir.glob("*.yaml")) if sub_missions_dir.exists() else []
+    sub_mission_files = _iter_sub_mission_files(sub_missions_dir)
 
     if sub_mission_files:
         for sub_file in sorted(sub_mission_files):
@@ -314,14 +314,16 @@ def validate_submission_command(
 
     mission_path = workspace.mission_path(mission_id)
     sub_missions_dir = mission_path / "sub-missions"
-    sub_mission_file = sub_missions_dir / f"{sub_mission_id}.yaml"
+    sub_mission_file = workspace.sub_mission_definition_path(mission_id, sub_mission_id)
 
     console.print(f"\n[bold]Validating:[/bold] {sub_mission_file}")
 
     # Check file exists
     if not sub_mission_file.exists():
         console.print(f"[red]Error:[/red] Sub-mission file not found: {sub_mission_file}")
-        console.print(f"\n[yellow]Expected location:[/yellow] {sub_missions_dir}/{sub_mission_id}.yaml")
+        console.print("\n[yellow]Expected locations:[/yellow]")
+        console.print(f"  {sub_missions_dir}/{sub_mission_id}/sub-mission.yaml")
+        console.print(f"  {sub_missions_dir}/{sub_mission_id}.yaml")
         raise typer.Exit(1)
 
     # Validate parent mission first
@@ -435,7 +437,7 @@ def _check_path_overlaps(
 
     current_spec = pathspec.PathSpec.from_lines("gitignore", sub_mission.allowed_paths)
 
-    for other_file in sub_missions_dir.glob("*.yaml"):
+    for other_file in _iter_sub_mission_files(sub_missions_dir):
         if other_file == current_file:
             continue
 
@@ -477,7 +479,7 @@ def _get_available_sub_missions(sub_missions_dir: Path) -> list[str]:
     if not sub_missions_dir.exists():
         return missions
 
-    for sub_file in sub_missions_dir.glob("*.yaml"):
+    for sub_file in _iter_sub_mission_files(sub_missions_dir):
         try:
             sub_mission = SchemaValidator.validate_sub_mission_file(sub_file)
             missions.append(sub_mission.id)
@@ -486,6 +488,21 @@ def _get_available_sub_missions(sub_missions_dir: Path) -> list[str]:
             continue
 
     return missions
+
+
+def _iter_sub_mission_files(sub_missions_dir: Path) -> list[Path]:
+    """Return canonical and legacy sub-mission definition files."""
+    if not sub_missions_dir.exists():
+        return []
+
+    files = []
+    for sub_dir in sorted(path for path in sub_missions_dir.iterdir() if path.is_dir()):
+        sub_file = sub_dir / "sub-mission.yaml"
+        if sub_file.exists():
+            files.append(sub_file)
+
+    files.extend(sorted(sub_missions_dir.glob("*.yaml")))
+    return files
 
 
 # Made with Bob

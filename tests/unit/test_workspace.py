@@ -63,6 +63,32 @@ def test_sub_mission_path(workspace: Workspace):
     assert workspace.sub_mission_path(mission_id, sub_mission_id) == expected
 
 
+def test_sub_mission_definition_path_prefers_canonical(workspace: Workspace):
+    """Test sub-mission definition path resolution prefers canonical layout."""
+    mission_id = "MF-001"
+    sub_mission_id = "MF-001-A"
+    canonical = (
+        workspace.missions_dir
+        / mission_id
+        / "sub-missions"
+        / sub_mission_id
+        / "sub-mission.yaml"
+    )
+    canonical.parent.mkdir(parents=True)
+    canonical.write_text("id: MF-001-A\n")
+
+    assert workspace.sub_mission_definition_path(mission_id, sub_mission_id) == canonical
+
+
+def test_sub_mission_definition_path_falls_back_to_flat(workspace: Workspace):
+    """Test sub-mission definition path supports legacy flat layout."""
+    mission_id = "MF-001"
+    sub_mission_id = "MF-001-A"
+    expected = workspace.missions_dir / mission_id / "sub-missions" / f"{sub_mission_id}.yaml"
+
+    assert workspace.sub_mission_definition_path(mission_id, sub_mission_id) == expected
+
+
 def test_initialize_workspace(tmp_path: Path):
     """Test workspace initialization."""
     workspace_dir = tmp_path / ".missionforge"
