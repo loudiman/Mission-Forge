@@ -82,8 +82,9 @@ Icon
 docs/superpowers/
 
 # Local-only directories
-.bob/
+# .bob/
 issues/
+.agents/
 
 # Local-only planning docs
 AGENTS.md
@@ -91,7 +92,9 @@ CLI_FOUNDATION_PLAN.md
 development_roadmap.md
 missionforge_development_phases_with_context.md
 missionforge_plan.md
+CLAUDE.md
+skills-lock.json
 
 
 #ruff
-.ruffcache/
+.ruff_cache/
