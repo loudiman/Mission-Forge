@@ -30,6 +30,9 @@ def validate_sub_mission_id(sub_mission_id: str) -> bool:
     Sub-mission IDs must match pattern: [A-Z]{2,4}-\\d{3}-[A-Z]
     Examples: MF-001-A, FG-042-B
 
+    The single trailing letter (A–Z) caps each parent mission at 26
+    sub-missions. This is an intentional design constraint.
+
     Args:
         sub_mission_id: Sub-mission identifier to validate.
 

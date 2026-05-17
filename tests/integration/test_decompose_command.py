@@ -66,7 +66,7 @@ class TestDecomposeCommand:
     """Test decompose command functionality."""
 
     def test_decompose_creates_sub_missions_directory(self, test_mission, monkeypatch):
-        """Test that decompose creates sub-missions directory."""
+        """Test that decompose creates sub-missions directory on first run."""
         monkeypatch.chdir(test_mission)
 
         result = runner.invoke(app, ["decompose", "MF-001"])
@@ -75,6 +75,22 @@ class TestDecomposeCommand:
         sub_missions_dir = test_mission / ".missionforge" / "missions" / "MF-001" / "sub-missions"
         assert sub_missions_dir.exists()
         assert sub_missions_dir.is_dir()
+        assert "Created:" in result.stdout
+        assert "Already exists:" not in result.stdout
+
+    def test_decompose_reports_existing_directory_on_second_run(self, test_mission, monkeypatch):
+        """Test that a second decompose run reports the directory already exists."""
+        monkeypatch.chdir(test_mission)
+
+        # First run creates the directory
+        runner.invoke(app, ["decompose", "MF-001"])
+
+        # Second run should acknowledge it already exists
+        result = runner.invoke(app, ["decompose", "MF-001"])
+
+        assert result.exit_code == 0
+        assert "Already exists:" in result.stdout
+        assert "Created:" not in result.stdout
 
     def test_decompose_validates_parent_mission(self, test_mission, monkeypatch):
         """Test that decompose validates parent mission first."""
@@ -211,7 +227,10 @@ goal: "Test wrong parent reference"
         result = runner.invoke(app, ["validate-submission", "MF-001", "MF-001-A"])
 
         assert result.exit_code == 1
-        assert "does not match parent ID" in result.stdout or "Expected parent" in result.stdout
+        # The schema validator enforces the parent constraint at parse time,
+        # so the error is a schema validation failure rather than the later
+        # command-level "Parent mismatch" check.
+        assert "does not match parent ID" in result.stdout
 
     def test_validate_submission_checks_forbidden_paths(self, test_mission, monkeypatch):
         """Test that validation checks forbidden paths."""
@@ -285,7 +304,40 @@ allowed_paths:
 
         # Should succeed but with warnings
         assert result.exit_code == 0
-        assert "Warnings" in result.stdout or "overlaps" in result.stdout.lower()
+        assert "overlaps" in result.stdout.lower()
+        # The conflicting path must appear in the warning text
+        assert "src/module_a/**" in result.stdout
+
+    def test_validate_submission_no_duplicate_overlap_warnings(
+        self, test_mission_with_sub_missions, monkeypatch
+    ):
+        """Identical paths in two sub-missions must produce exactly one warning.
+
+        MF-001-A already declares 'src/module_a/**'. When MF-001-C uses the same
+        path the bidirectional overlap check previously emitted two warnings for
+        the same path (one per direction). Only one warning should appear.
+        """
+        monkeypatch.chdir(test_mission_with_sub_missions)
+
+        sub_missions_dir = (
+            test_mission_with_sub_missions / ".missionforge" / "missions" / "MF-001" / "sub-missions"
+        )
+
+        overlap = sub_missions_dir / "MF-001-C.yaml"
+        overlap.write_text("""id: MF-001-C
+parent: MF-001
+title: "Same path as A"
+goal: "Test duplicate warning suppression"
+allowed_paths:
+  - "src/module_a/**"
+""")
+
+        result = runner.invoke(app, ["validate-submission", "MF-001", "MF-001-C"])
+
+        assert result.exit_code == 0
+        # The conflicting path must appear exactly once, not duplicated
+        assert result.stdout.count("src/module_a/**") == 1
+
 
     def test_validate_submission_fails_for_nonexistent_file(self, test_mission, monkeypatch):
         """Test that validation fails for non-existent sub-mission file."""
@@ -380,7 +432,12 @@ goal: "Test wrong parent"
 
         assert result.exit_code == 0
         assert "Current Status" in result.stdout
-        # Should show error in status table
+        # Verify the status table lists the offending file
+        assert "MF-002-A.yaml" in result.stdout
+        # Verify the parent mismatch is flagged in the status column
+        assert "Parent mismatch" in result.stdout
+        # Verify the expected parent is shown in the validation column
+        assert "Expected: MF-001" in result.stdout
 
 
 # Made with Bob
