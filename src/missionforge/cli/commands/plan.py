@@ -39,7 +39,7 @@ def plan_command(
         raise typer.Exit(1)
 
     try:
-        SchemaValidator.validate_parent_mission_file(mission_file)
+        parent_mission = SchemaValidator.validate_parent_mission_file(mission_file)
     except Exception as e:
         console.print(f"[red]Error loading parent mission:[/red] {e}")
         raise typer.Exit(1) from None
@@ -117,7 +117,12 @@ def plan_command(
 
     console.print("[green]✓[/green] Topological order computed")
 
-    plan = ExecutionPlan(execution_order=execution_order, dependency_graph=graph)
+    plan = ExecutionPlan(
+        mission_id=mission_id,
+        decomposition_rationale=parent_mission.decomposition_rationale,
+        execution_order=execution_order,
+        dependency_graph=graph,
+    )
     parallelism = _compute_parallelism_levels(graph, execution_order)
 
     _display_plan_summary(plan, parallelism)
@@ -305,10 +310,13 @@ def _write_plan_file(
         header_lines.append(f"# Level {level}: {', '.join(parallelism[level])}")
     header_lines.append("")
 
-    plan_data = {
-        "execution_order": plan.execution_order,
-        "dependency_graph": plan.dependency_graph,
-    }
+    plan_data: dict = {}
+    if plan.mission_id:
+        plan_data["mission_id"] = plan.mission_id
+    if plan.decomposition_rationale:
+        plan_data["decomposition_rationale"] = plan.decomposition_rationale
+    plan_data["execution_order"] = plan.execution_order
+    plan_data["dependency_graph"] = plan.dependency_graph
     yaml_content = yaml.dump(plan_data, default_flow_style=False, sort_keys=False)
 
     plan_file = mission_path / "plan.yaml"
@@ -323,10 +331,17 @@ def _display_plan_summary(
     order_lines = "\n".join(
         f"  {i + 1}. {mid}" for i, mid in enumerate(plan.execution_order)
     )
-    level_lines = "\n".join(
-        f"  Level {lvl} ({'ready' if lvl == 0 else f'after Level {lvl - 1}'}): {', '.join(ms)}"
-        for lvl, ms in sorted(parallelism.items())
-    )
+    level_parts = []
+    for lvl, ms in sorted(parallelism.items()):
+        if lvl == 0:
+            level_parts.append(f"  [green]Ready  [/green] [Level {lvl}]: {', '.join(ms)}")
+        else:
+            blocked_by = sorted({dep for m in ms for dep in plan.dependency_graph.get(m, [])})
+            level_parts.append(
+                f"  [yellow]Blocked[/yellow] [Level {lvl}]: {', '.join(ms)}"
+                f"  [dim](waiting on: {', '.join(blocked_by)})[/dim]"
+            )
+    level_lines = "\n".join(level_parts)
     content = (
         f"[bold]Execution Order:[/bold]\n{order_lines}\n\n"
         f"[bold]Parallelism Analysis:[/bold]\n{level_lines}\n\n"

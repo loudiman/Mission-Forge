@@ -69,6 +69,9 @@ class ParentMission(BaseModel):
     sub_missions: list[str] = Field(
         default_factory=list, description="List of sub-mission IDs"
     )
+    decomposition_rationale: str | None = Field(
+        None, description="Rationale for how the mission was decomposed into sub-missions"
+    )
 
     @field_validator("id")
     @classmethod
@@ -304,6 +307,10 @@ class Validation(BaseModel):
 class ExecutionPlan(BaseModel):
     """Execution plan with dependency graph."""
 
+    mission_id: str | None = Field(None, description="Parent mission ID")
+    decomposition_rationale: str | None = Field(
+        None, description="Rationale for how the mission was decomposed"
+    )
     execution_order: list[str] = Field(
         default_factory=list, description="Ordered list of sub-mission IDs to execute"
     )

@@ -174,6 +174,49 @@ class TestPlanCommandSuccess:
         assert "Level 0" in result.stdout
         assert "Level 1" in result.stdout
 
+    def test_output_shows_ready_and_blocked(self, mission_diamond, monkeypatch):
+        monkeypatch.chdir(mission_diamond)
+        result = runner.invoke(app, ["plan", "MF-001"])
+        assert "Ready" in result.stdout
+        assert "Blocked" in result.stdout
+        assert "waiting on" in result.stdout
+
+    def test_plan_yaml_contains_mission_id(self, mission_linear, monkeypatch):
+        monkeypatch.chdir(mission_linear)
+        runner.invoke(app, ["plan", "MF-001"])
+        plan_file = mission_linear / ".missionforge" / "missions" / "MF-001" / "plan.yaml"
+        content = plan_file.read_text()
+        assert "mission_id: MF-001" in content
+
+    def test_plan_yaml_schema_includes_mission_id(self, mission_linear, monkeypatch):
+        monkeypatch.chdir(mission_linear)
+        runner.invoke(app, ["plan", "MF-001"])
+        plan_file = mission_linear / ".missionforge" / "missions" / "MF-001" / "plan.yaml"
+        plan = SchemaValidator.validate_plan_file(plan_file)
+        assert plan.mission_id == "MF-001"
+
+    def test_plan_yaml_includes_rationale_when_present(self, tmp_path, monkeypatch):
+        mission_dir = tmp_path / ".missionforge" / "missions" / "MF-001"
+        sub_dir = mission_dir / "sub-missions"
+        sub_dir.mkdir(parents=True)
+        (mission_dir / "mission.yaml").write_text(
+            MISSION_YAML + "decomposition_rationale: Split by domain concerns\n"
+        )
+        (sub_dir / "MF-001-A.yaml").write_text(SUB_A)
+        monkeypatch.chdir(tmp_path)
+        runner.invoke(app, ["plan", "MF-001"])
+        plan_file = mission_dir / "plan.yaml"
+        content = plan_file.read_text()
+        assert "decomposition_rationale" in content
+        assert "Split by domain concerns" in content
+
+    def test_plan_yaml_omits_rationale_when_absent(self, mission_linear, monkeypatch):
+        monkeypatch.chdir(mission_linear)
+        runner.invoke(app, ["plan", "MF-001"])
+        plan_file = mission_linear / ".missionforge" / "missions" / "MF-001" / "plan.yaml"
+        content = plan_file.read_text()
+        assert "decomposition_rationale" not in content
+
     def test_single_sub_mission(self, tmp_path, monkeypatch):
         ws = _setup_workspace(tmp_path, {"MF-001-A.yaml": SUB_A})
         monkeypatch.chdir(ws)
