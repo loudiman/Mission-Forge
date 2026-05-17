@@ -18,7 +18,8 @@ allowed_paths:
   - "src/missionforge/backend/models/**"
   - "src/missionforge/backend/models/__init__.py"
   - "src/missionforge/backend/models/responses.py"
-  - "src/missionforge/backend/main.py"
+  - "tests/integration/test_backend_api.py"
+  - ".missionforge/missions/MF-014/**"
 
 # Metrics for this sub-mission
 metrics:

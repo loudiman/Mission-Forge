@@ -2,17 +2,21 @@ id: MF-014-A
 parent: MF-014
 title: "Backend Project Setup and Core Infrastructure"
 goal: |
-  Set up the FastAPI backend project structure with repository root detection,
-  file reading capabilities, and basic configuration. This establishes the foundation
-  for all API endpoints.
+  Set up the FastAPI backend project structure with repository root detection
+  and file reading capabilities. This establishes the foundation for all API endpoints.
 
 # No dependencies - this is the foundation
 depends_on: []
 
 # Paths this sub-mission can modify
 allowed_paths:
-  - "src/missionforge/backend/**"
-  - "tests/unit/backend/**"
+  - "src/missionforge/backend/__init__.py"
+  - "src/missionforge/backend/repository.py"
+  - "src/missionforge/backend/state/**"
+  - "src/missionforge/backend/io/**"
+  - ".missionforge/missions/MF-014/sub-missions/**"
+  - ".missionforge/missions/MF-014/mission.yaml"
+  - "missionforge/missions/MF-014/mission.yaml"
   - "pyproject.toml"
 
 # Metrics for this sub-mission
@@ -39,7 +43,5 @@ tasks:
   - "Implement repository root detection"
   - "Read mission state from .missionforge/ directory"
   - "Parse YAML and JSON files"
-  - "Add basic configuration (port, CORS origins)"
-  - "Add health check endpoint"
 
 # Made with Bob

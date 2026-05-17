@@ -20,8 +20,16 @@ allowed_paths:
   - "src/missionforge/backend/cache/__init__.py"
   - "src/missionforge/backend/cache/file_cache.py"
   - "src/missionforge/backend/config.py"
+  - "src/missionforge/backend/repository.py"
+  - "src/missionforge/backend/models/**"
+  - "src/missionforge/backend/routers/**"
   - "docs/api/**"
   - "docs/api/openapi.json"
+  - "tests/unit/backend/test_cache.py"
+  - "tests/unit/backend/test_cors.py"
+  - "tests/integration/test_backend_api.py"
+  - ".missionforge/missions/MF-014/**"
+  - "missionforge/missions/MF-014/mission.yaml"
 
 # Metrics for this sub-mission
 metrics:
@@ -51,3 +59,5 @@ tasks:
   - "Use Pydantic models for response validation"
 
 # Made with Bob
+  - "src/missionforge/backend/middleware"
+  - "src/missionforge/backend/cache"

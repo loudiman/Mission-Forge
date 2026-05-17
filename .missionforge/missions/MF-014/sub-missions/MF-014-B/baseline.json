@@ -1,0 +1,25 @@
+{
+  "sub_mission_id": "MF-014-B",
+  "timestamp": "2026-05-17T14:22:39.925718+00:00",
+  "status": "committed",
+  "metrics": [
+    {
+      "metric_id": "test_coverage",
+      "description": "Baseline measurement for test_coverage",
+      "baseline_target": 95.0,
+      "value": 0.0
+    },
+    {
+      "metric_id": "lines_added",
+      "description": "Baseline measurement for lines_added",
+      "baseline_target": 450.0,
+      "value": 0.0
+    },
+    {
+      "metric_id": "files_changed",
+      "description": "Baseline measurement for files_changed",
+      "baseline_target": 7.0,
+      "value": 0.0
+    }
+  ]
+}

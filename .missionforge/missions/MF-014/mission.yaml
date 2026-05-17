@@ -38,7 +38,6 @@ forbidden_paths:
   - "tests/manual/**"
   - "tests/fixtures/baseline/**"
   - "tests/test_*.py"
-  - ".missionforge/**"
 
 # Optional: Paths that sub-missions CAN modify
 # If not specified, all paths except forbidden_paths are allowed

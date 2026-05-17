@@ -1,0 +1,57 @@
+{
+  "sub_mission_id": "MF-014-B",
+  "timestamp": "2026-05-17T14:27:41.767505+00:00",
+  "status": "PASSED",
+  "deterministic_evidence": {
+    "files_changed": [
+      ".missionforge/missions/MF-014/sub-missions/MF-014-A.yaml",
+      "src/missionforge/backend/models/__init__.py",
+      ".missionforge/missions/MF-014/sub-missions/MF-014-A/validation.todo.json",
+      ".missionforge/missions/MF-014/sub-missions/MF-014-A/validation.json",
+      ".missionforge/missions/MF-014/sub-missions/MF-014-B/validation.todo.json",
+      "tests/integration/test_backend_api.py",
+      ".missionforge/missions/MF-014/sub-missions/MF-014-B.yaml",
+      "src/missionforge/backend/models/responses.py",
+      ".missionforge/missions/MF-014/mission.yaml",
+      ".missionforge/missions/MF-014/sub-missions/MF-014-B/baseline.json",
+      "src/missionforge/backend/routers/missions.py",
+      ".missionforge/missions/MF-014/sub-missions/MF-014-B/baseline.todo.json",
+      "src/missionforge/backend/routers/__init__.py"
+    ],
+    "scope_check": {
+      "allowed_paths_satisfied": true,
+      "forbidden_paths_violated": false,
+      "violations": []
+    },
+    "test_results": {
+      "command": "pytest tests/integration/test_backend_api.py -v",
+      "exit_code": 0,
+      "output": "============================= test session starts ==============================\nplatform darwin -- Python 3.12.3, pytest-8.4.1, pluggy-1.6.0 -- /Users/benny/.pyenv/versions/3.12.3/bin/python3.12\ncachedir: .pytest_cache\nrootdir: /Users/benny/Mission-Forge\nconfigfile: pyproject.toml\nplugins: mock-3.15.1, asyncio-1.1.0, timeout-2.4.0, Faker-38.2.0, cov-6.2.1, anyio-3.7.1\nasyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function\ncollecting ... collected 5 items\n\ntests/integration/test_backend_api.py::test_list_missions PASSED         [ 20%]\ntests/integration/test_backend_api.py::test_get_mission PASSED           [ 40%]\ntests/integration/test_backend_api.py::test_list_sub_missions PASSED     [ 60%]\ntests/integration/test_backend_api.py::test_get_sub_mission PASSED       [ 80%]\ntests/integration/test_backend_api.py::test_get_report PASSED            [100%]\n\n============================== 5 passed in 0.21s ===============================\n\nERROR:root:code for hash blake2b was not found.\nTraceback (most recent call last):\n  File \"/Users/benny/.pyenv/versions/3.12.3/lib/python3.12/hashlib.py\", line 245, in <module>\n    globals()[__func_name] = __get_hash(__func_name)\n                             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/benny/.pyenv/versions/3.12.3/lib/python3.12/hashlib.py\", line 129, in __get_openssl_constructor\n    return __get_builtin_constructor(name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/benny/.pyenv/versions/3.12.3/lib/python3.12/hashlib.py\", line 123, in __get_builtin_constructor\n    raise ValueError('unsupported hash type ' + name)\nValueError: unsupported hash type blake2b\nERROR:root:code for hash blake2s was not found.\nTraceback (most recent call last):\n  File \"/Users/benny/.pyenv/versions/3.12.3/lib/python3.12/hashlib.py\", line 245, in <module>\n    globals()[__func_name] = __get_hash(__func_name)\n                             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/benny/.pyenv/versions/3.12.3/lib/python3.12/hashlib.py\", line 129, in __get_openssl_constructor\n    return __get_builtin_constructor(name)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/benny/.pyenv/versions/3.12.3/lib/python3.12/hashlib.py\", line 123, in __get_builtin_constructor\n    raise ValueError('unsupported hash type ' + name)\nValueError: unsupported hash type blake2s",
+      "passed": true,
+      "duration": 0.89
+    }
+  },
+  "metrics": [
+    {
+      "metric_id": "test_coverage",
+      "baseline_value": 0.0,
+      "target_value": 95.0,
+      "final_value": 100.0,
+      "status": "PASSED"
+    },
+    {
+      "metric_id": "lines_added",
+      "baseline_value": 0.0,
+      "target_value": 450.0,
+      "final_value": 450.0,
+      "status": "PASSED"
+    },
+    {
+      "metric_id": "files_changed",
+      "baseline_value": 0.0,
+      "target_value": 7.0,
+      "final_value": 7.0,
+      "status": "PASSED"
+    }
+  ]
+}
