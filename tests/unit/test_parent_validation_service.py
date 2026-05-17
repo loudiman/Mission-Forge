@@ -139,9 +139,9 @@ class TestAggregateSubMissions:
 class TestDetermineParentStatus:
     """Test status determination logic."""
 
-    def test_status_passed_all_checks(self):
+    def test_status_passed_all_checks(self, mock_workspace):
         """Test status when all checks pass."""
-        service = ParentValidationService()
+        service = ParentValidationService(mock_workspace)
 
         sub_missions = SubMissionsAggregate(
             total=2,
@@ -186,9 +186,9 @@ class TestDetermineParentStatus:
 
         assert status == "PASSED"
 
-    def test_status_failed_sub_mission(self):
+    def test_status_failed_sub_mission(self, mock_workspace):
         """Test status when sub-mission failed."""
-        service = ParentValidationService()
+        service = ParentValidationService(mock_workspace)
 
         sub_missions = SubMissionsAggregate(
             total=2,
@@ -210,9 +210,9 @@ class TestDetermineParentStatus:
 
         assert status == "FAILED"
 
-    def test_status_failed_parent_test(self):
+    def test_status_failed_parent_test(self, mock_workspace):
         """Test status when parent test failed."""
-        service = ParentValidationService()
+        service = ParentValidationService(mock_workspace)
 
         sub_missions = SubMissionsAggregate(
             total=2,
@@ -242,9 +242,9 @@ class TestDetermineParentStatus:
 
         assert status == "FAILED"
 
-    def test_status_failed_aggregate_metric(self):
+    def test_status_failed_aggregate_metric(self, mock_workspace):
         """Test status when aggregate metric failed."""
-        service = ParentValidationService()
+        service = ParentValidationService(mock_workspace)
 
         sub_missions = SubMissionsAggregate(
             total=2,
@@ -276,9 +276,9 @@ class TestDetermineParentStatus:
 
         assert status == "FAILED"
 
-    def test_status_failed_forbidden_paths(self):
+    def test_status_failed_forbidden_paths(self, mock_workspace):
         """Test status when forbidden paths violated."""
-        service = ParentValidationService()
+        service = ParentValidationService(mock_workspace)
 
         sub_missions = SubMissionsAggregate(
             total=2,
