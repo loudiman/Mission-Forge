@@ -132,5 +132,16 @@ class Workspace:
         parent_id = sub_mission_id.rsplit("-", 1)[0]
         return self.sub_mission_path(parent_id, sub_mission_id) / "validation.json"
 
+    def parent_validation_path(self, mission_id: str) -> Path:
+        """Get path to parent validation.json.
+
+        Args:
+            mission_id: Parent mission identifier (e.g., 'MF-001').
+
+        Returns:
+            Path to .missionforge/missions/{mission_id}/validation.json
+        """
+        return self.mission_path(mission_id) / "validation.json"
+
 
 # Made with Bob
