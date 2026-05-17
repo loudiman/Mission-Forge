@@ -50,9 +50,18 @@ class ReportGenerator:
         # Determine output path
         if output_path is None:
             output_path = mission_path / "report.md"
+        
+        # Ensure parent directory exists
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Write report
-        output_path.write_text(report_content, encoding="utf-8")
+        try:
+            output_path.write_text(report_content, encoding="utf-8")
+        except (OSError, PermissionError) as e:
+            raise MissionForgeError(
+                f"Failed to write report to {output_path}: {e}",
+                "Check file permissions and disk space"
+            ) from e
 
         return report_content, output_path
 
