@@ -146,4 +146,67 @@ class ScopeViolationError(MissionForgeError):
         )
 
 
+class ParentValidationError(MissionForgeError):
+    """Base exception for parent validation errors."""
+
+    pass
+
+
+class ParentValidationIncompleteError(ParentValidationError):
+    """Raised when not all sub-missions have validation.json."""
+
+    def __init__(self, mission_id: str, missing_subs: list[str]):
+        missing_list = "\n  • ".join(missing_subs)
+        super().__init__(
+            f"Parent mission {mission_id} cannot be validated - "
+            f"missing validation.json for:\n  • {missing_list}",
+            "Run 'missionforge validate capture <id>' and commit for each sub-mission",
+        )
+
+
+class ParentValidationFailedError(ParentValidationError):
+    """Raised when parent validation fails."""
+
+    def __init__(self, mission_id: str, reason: str):
+        super().__init__(
+            f"Parent mission {mission_id} validation failed: {reason}",
+            "Review and fix the issues before re-validating",
+        )
+
+
+class ParentTestFailedError(ParentValidationError):
+    """Raised when parent test command fails."""
+
+    def __init__(self, mission_id: str, exit_code: int, output: str):
+        # Truncate output to avoid overwhelming display
+        truncated_output = output[:500] + ("..." if len(output) > 500 else "")
+        super().__init__(
+            f"Parent test for {mission_id} failed (exit code: {exit_code})\n"
+            f"Output:\n{truncated_output}",
+            "Fix test failures before proceeding with validation",
+        )
+
+
+class AggregateMetricFailedError(ParentValidationError):
+    """Raised when aggregate metric validation fails."""
+
+    def __init__(self, mission_id: str, failed_metrics: list[str]):
+        metrics_list = "\n  • ".join(failed_metrics)
+        super().__init__(
+            f"Aggregate metrics failed for {mission_id}:\n  • {metrics_list}",
+            "Review sub-mission implementations to meet aggregate targets",
+        )
+
+
+class ForbiddenPathViolationError(ParentValidationError):
+    """Raised when forbidden paths are violated across sub-missions."""
+
+    def __init__(self, mission_id: str, violations: list[str]):
+        violations_list = "\n  • ".join(violations)
+        super().__init__(
+            f"Forbidden path violations detected for {mission_id}:\n  • {violations_list}",
+            "Ensure no sub-mission modifies forbidden paths",
+        )
+
+
 # Made with Bob

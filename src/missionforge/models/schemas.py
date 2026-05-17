@@ -531,4 +531,161 @@ class SubMissionValidation(BaseModel):
         return v
 
 
+class SubMissionSummary(BaseModel):
+    """Summary of a single sub-mission's validation status."""
+
+    id: str = Field(..., description="Sub-mission ID (e.g., MF-001-A)")
+    status: str = Field(..., description="PASSED, FAILED, or BLOCKED")
+    timestamp: str | None = Field(None, description="ISO 8601 timestamp")
+
+    @field_validator("id")
+    @classmethod
+    def validate_sub_mission_id(cls, v: str) -> str:
+        pattern = r"^[A-Z]{2,4}-\d{3}-[A-Z]$"
+        if not re.match(pattern, v):
+            raise ValueError(
+                f"Invalid sub-mission ID format: {v}. "
+                "Must match pattern: [A-Z]{{2,4}}-\\d{{3}}-[A-Z] (e.g., MF-001-A)"
+            )
+        return v
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        if v not in ("PASSED", "FAILED", "BLOCKED"):
+            raise ValueError(f"Invalid status: {v}. Must be PASSED, FAILED, or BLOCKED")
+        return v
+
+
+class SubMissionsAggregate(BaseModel):
+    """Aggregate summary of all sub-missions."""
+
+    total: int = Field(..., description="Total number of sub-missions")
+    passed: int = Field(..., description="Number of PASSED sub-missions")
+    failed: int = Field(..., description="Number of FAILED sub-missions")
+    blocked: int = Field(..., description="Number of BLOCKED sub-missions")
+    details: list[SubMissionSummary] = Field(
+        default_factory=list,
+        description="Detailed status of each sub-mission"
+    )
+
+    @field_validator("total", "passed", "failed", "blocked")
+    @classmethod
+    def validate_non_negative(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("Count cannot be negative")
+        return v
+
+    @model_validator(mode="after")
+    def validate_counts(self) -> "SubMissionsAggregate":
+        """Ensure counts add up correctly."""
+        if self.passed + self.failed + self.blocked != self.total:
+            raise ValueError("Sub-mission counts do not match total")
+        if len(self.details) != self.total:
+            raise ValueError("Details count does not match total")
+        return self
+
+
+class AggregateMetricResult(BaseModel):
+    """Result of an aggregate metric validation."""
+
+    metric_id: str = Field(..., description="Unique metric identifier")
+    baseline_value: bool | int | float | str | None = Field(
+        None,
+        description="Baseline value if available"
+    )
+    target_value: bool | int | float | str = Field(
+        ...,
+        description="Target value from mission definition"
+    )
+    final_value: bool | int | float | str | None = Field(
+        None,
+        description="Final measured value (filled by Bob)"
+    )
+    status: str = Field(..., description="PASSED or FAILED")
+
+    @field_validator("metric_id")
+    @classmethod
+    def validate_metric_id(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("metric_id cannot be empty")
+        return v
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        if v not in ("PASSED", "FAILED"):
+            raise ValueError(f"Invalid status: {v}. Must be PASSED or FAILED")
+        return v
+
+
+class ParentTestResult(BaseModel):
+    """Parent-level test execution result."""
+
+    command: str = Field(..., description="Test command executed")
+    exit_code: int = Field(..., description="Process exit code")
+    output: str = Field(..., description="Combined stdout/stderr")
+    passed: bool = Field(..., description="Whether tests passed")
+    duration: float = Field(..., description="Execution time in seconds")
+
+    @field_validator("duration")
+    @classmethod
+    def validate_duration(cls, v: float) -> float:
+        if v < 0:
+            raise ValueError("Duration cannot be negative")
+        return v
+
+
+class ForbiddenPathsCheck(BaseModel):
+    """Cross-sub-mission forbidden paths validation."""
+
+    violated: bool = Field(..., description="Whether any paths violated")
+    violations: list[str] = Field(
+        default_factory=list,
+        description="List of violating file paths"
+    )
+
+
+class ParentMissionValidation(BaseModel):
+    """Complete parent mission validation state."""
+
+    mission_id: str = Field(..., description="Parent mission ID")
+    timestamp: str = Field(..., description="ISO 8601 timestamp")
+    status: str = Field(..., description="PASSED, FAILED, or INCOMPLETE")
+    sub_missions: SubMissionsAggregate = Field(
+        ...,
+        description="Aggregate sub-mission status"
+    )
+    aggregate_metrics: list[AggregateMetricResult] = Field(
+        default_factory=list,
+        description="Aggregate metric validation results"
+    )
+    parent_test: ParentTestResult | None = Field(
+        None,
+        description="Parent test execution result"
+    )
+    forbidden_paths_check: ForbiddenPathsCheck = Field(
+        ...,
+        description="Forbidden paths validation result"
+    )
+
+    @field_validator("mission_id")
+    @classmethod
+    def validate_mission_id(cls, v: str) -> str:
+        pattern = r"^[A-Z]{2,4}-\d{3}[A-Z]?$"
+        if not re.match(pattern, v):
+            raise ValueError(
+                f"Invalid mission ID format: {v}. "
+                "Must match pattern: [A-Z]{{2,4}}-\\d{{3}}[A-Z]? (e.g., MF-001)"
+            )
+        return v
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        if v not in ("PASSED", "FAILED", "INCOMPLETE"):
+            raise ValueError(f"Invalid status: {v}. Must be PASSED, FAILED, or INCOMPLETE")
+        return v
+
+
 # Made with Bob
