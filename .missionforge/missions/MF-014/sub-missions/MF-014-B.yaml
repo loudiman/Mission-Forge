@@ -1,0 +1,49 @@
+id: MF-014-B
+parent: MF-014
+title: "Mission API Endpoints Implementation"
+goal: |
+  Implement all REST API endpoints for reading mission data from .missionforge/
+  directory. This includes endpoints for listing missions, getting mission details,
+  sub-missions, and reports.
+
+# Depends on backend infrastructure being set up
+depends_on:
+  - MF-014-A
+
+# Paths this sub-mission can modify
+allowed_paths:
+  - "src/missionforge/backend/routers/**"
+  - "src/missionforge/backend/routers/__init__.py"
+  - "src/missionforge/backend/routers/missions.py"
+  - "src/missionforge/backend/models/**"
+  - "src/missionforge/backend/models/__init__.py"
+  - "src/missionforge/backend/models/responses.py"
+  - "src/missionforge/backend/main.py"
+
+# Metrics for this sub-mission
+metrics:
+  test_coverage:
+    min: 85.0
+    target: 95.0
+    description: "API endpoints must be thoroughly tested"
+  lines_added:
+    max: 600
+    description: "Keep endpoint implementation focused"
+  files_changed:
+    max: 10
+    description: "Limited to API-related files"
+
+# Test command for this sub-mission
+test_command: "pytest tests/integration/test_backend_api.py -v"
+
+# Tasks covered by this sub-mission
+tasks:
+  - "Create endpoint: GET /api/missions (list all parent missions)"
+  - "Create endpoint: GET /api/missions/{mission_id} (parent mission detail)"
+  - "Create endpoint: GET /api/missions/{mission_id}/sub-missions (list sub-missions)"
+  - "Create endpoint: GET /api/missions/{mission_id}/sub-missions/{sub_id} (sub-mission detail)"
+  - "Create endpoint: GET /api/missions/{mission_id}/report (get report.md)"
+  - "Add error handling for missing or invalid state"
+  - "Response format is consistent and well-structured"
+
+# Made with Bob

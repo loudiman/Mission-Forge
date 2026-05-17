@@ -1,0 +1,45 @@
+id: MF-014-A
+parent: MF-014
+title: "Backend Project Setup and Core Infrastructure"
+goal: |
+  Set up the FastAPI backend project structure with repository root detection,
+  file reading capabilities, and basic configuration. This establishes the foundation
+  for all API endpoints.
+
+# No dependencies - this is the foundation
+depends_on: []
+
+# Paths this sub-mission can modify
+allowed_paths:
+  - "src/missionforge/backend/__init__.py"
+  - "src/missionforge/backend/config.py"
+  - "src/missionforge/backend/repository.py"
+  - "requirements-backend.txt"
+  - "pyproject.toml"
+
+# Metrics for this sub-mission
+metrics:
+  test_coverage:
+    min: 80.0
+    target: 90.0
+    description: "Core infrastructure must be well-tested"
+  lines_added:
+    max: 400
+    description: "Keep setup focused and minimal"
+  files_changed:
+    max: 8
+    description: "Limited to core setup files"
+
+# Test command for this sub-mission
+test_command: "pytest tests/unit/backend/test_repository.py tests/unit/backend/test_config.py -v"
+
+# Tasks covered by this sub-mission
+tasks:
+  - "Create backend project structure (FastAPI)"
+  - "Implement repository root detection"
+  - "Read mission state from .missionforge/ directory"
+  - "Parse YAML and JSON files"
+  - "Add basic configuration (port, CORS origins)"
+  - "Add health check endpoint"
+
+# Made with Bob
