@@ -9,7 +9,7 @@ from ..core.config import MissionForgeConfig
 from ..core.exceptions import MissionForgeError
 from ..core.logging import setup_logging
 from ..core.workspace import Workspace
-from .commands import baseline, decompose, mission, plan, report, validate, workspace
+from .commands import baseline, decompose, mission, next, plan, report, validate, workspace
 from .commands.workspace import init_workspace
 
 app = typer.Typer(
