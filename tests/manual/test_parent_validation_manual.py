@@ -16,16 +16,16 @@ from tempfile import mkdtemp
 def create_test_mission_structure(base_dir: Path) -> str:
     """Create a complete test mission structure."""
     mission_id = "TEST-001"
-    
+
     # Create .missionforge structure
     mf_dir = base_dir / ".missionforge"
     missions_dir = mf_dir / "missions"
     missions_dir.mkdir(parents=True)
-    
+
     # Create parent mission
     parent_dir = missions_dir / mission_id
     parent_dir.mkdir()
-    
+
     # Create mission.yaml
     (parent_dir / "mission.yaml").write_text(f"""id: {mission_id}
 goal: Test parent validation happy path
@@ -38,16 +38,16 @@ sub_missions:
   - TEST-001-B
   - TEST-001-C
 """)
-    
+
     # Create sub-missions directory
     sub_missions_dir = parent_dir / "sub-missions"
     sub_missions_dir.mkdir()
-    
+
     # Create three sub-missions with validation.json
     for sub_id in ["TEST-001-A", "TEST-001-B", "TEST-001-C"]:
         sub_dir = sub_missions_dir / sub_id
         sub_dir.mkdir()
-        
+
         # Create sub-mission.yaml
         (sub_dir / "sub-mission.yaml").write_text(f"""id: {sub_id}
 parent: {mission_id}
@@ -63,7 +63,7 @@ metrics:
   complexity:
     target: 10.0
 """)
-        
+
         # Create validation.json (simulating successful sub-mission validation)
         validation_data = {
             "sub_mission_id": sub_id,
@@ -104,10 +104,10 @@ metrics:
                 }
             ]
         }
-        
+
         with open(sub_dir / "validation.json", "w") as f:
             json.dump(validation_data, f, indent=2)
-    
+
     return mission_id
 
 
@@ -117,28 +117,28 @@ def run_parent_validation(base_dir: Path, mission_id: str) -> tuple[int, str, st
         sys.executable, "-m", "missionforge",
         "validate", "parent", mission_id
     ]
-    
+
     result = subprocess.run(
         cmd,
         cwd=base_dir,
         capture_output=True,
         text=True
     )
-    
+
     return result.returncode, result.stdout, result.stderr
 
 
 def verify_validation_output(base_dir: Path, mission_id: str) -> bool:
     """Verify the validation.json was created correctly."""
     validation_path = base_dir / ".missionforge" / "missions" / mission_id / "validation.json"
-    
+
     if not validation_path.exists():
         print(f"❌ Validation file not found: {validation_path}")
         return False
-    
+
     with open(validation_path) as f:
         data = json.load(f)
-    
+
     # Verify structure
     checks = [
         ("mission_id", data.get("mission_id") == mission_id),
@@ -150,14 +150,14 @@ def verify_validation_output(base_dir: Path, mission_id: str) -> bool:
         ("sub_missions.blocked", data.get("sub_missions", {}).get("blocked") == 0),
         ("forbidden_paths_check", data.get("forbidden_paths_check", {}).get("violated") == False),
     ]
-    
+
     all_passed = True
     for check_name, check_result in checks:
         status = "✓" if check_result else "✗"
         print(f"  {status} {check_name}: {check_result}")
         if not check_result:
             all_passed = False
-    
+
     return all_passed
 
 
@@ -166,36 +166,36 @@ def main():
     print("=" * 70)
     print("PARENT VALIDATION HAPPY PATH TEST")
     print("=" * 70)
-    
+
     # Create temporary directory
     temp_dir = Path(mkdtemp(prefix="mf_test_"))
     print(f"\n📁 Test directory: {temp_dir}")
-    
+
     try:
         # Create test structure
         print("\n1️⃣  Creating test mission structure...")
         mission_id = create_test_mission_structure(temp_dir)
         print(f"   ✓ Created mission {mission_id} with 3 sub-missions")
-        
+
         # Run parent validation
         print(f"\n2️⃣  Running: missionforge validate parent {mission_id}")
         print("-" * 70)
         returncode, stdout, stderr = run_parent_validation(temp_dir, mission_id)
-        
+
         # Display output
         if stdout:
             print(stdout)
         if stderr:
             print("STDERR:", stderr, file=sys.stderr)
         print("-" * 70)
-        
+
         # Check return code
         if returncode != 0:
             print(f"\n❌ Command failed with exit code {returncode}")
             return 1
-        
+
         print(f"\n✓ Command succeeded (exit code: {returncode})")
-        
+
         # Verify output
         print("\n3️⃣  Verifying validation.json...")
         if verify_validation_output(temp_dir, mission_id):
@@ -207,7 +207,7 @@ def main():
         else:
             print("\n❌ VALIDATION CHECKS FAILED")
             return 1
-            
+
     except Exception as e:
         print(f"\n❌ Test failed with exception: {e}")
         import traceback
