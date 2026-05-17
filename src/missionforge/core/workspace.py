@@ -1,0 +1,100 @@
+"""Workspace path resolution and management."""
+
+from pathlib import Path
+from typing import Optional
+
+from .exceptions import WorkspaceNotFoundError
+
+
+class Workspace:
+    """Manages .missionforge workspace discovery and paths."""
+
+    WORKSPACE_DIR = ".missionforge"
+    MISSIONS_DIR = "missions"
+
+    def __init__(self, start_path: Optional[Path] = None):
+        """Initialize workspace from start path.
+
+        Args:
+            start_path: Starting directory for workspace search. Defaults to current directory.
+
+        Raises:
+            WorkspaceNotFoundError: If no .missionforge workspace found.
+        """
+        self.root = self._find_workspace_root(start_path or Path.cwd())
+        self.workspace_dir = self.root / self.WORKSPACE_DIR
+        self.missions_dir = self.workspace_dir / self.MISSIONS_DIR
+
+    def _find_workspace_root(self, start: Path) -> Path:
+        """Walk up directory tree to find .missionforge/.
+
+        Args:
+            start: Starting directory for search.
+
+        Returns:
+            Path to workspace root directory.
+
+        Raises:
+            WorkspaceNotFoundError: If no workspace found.
+        """
+        current = start.resolve()
+        while current != current.parent:
+            if (current / self.WORKSPACE_DIR).is_dir():
+                return current
+            current = current.parent
+        raise WorkspaceNotFoundError(str(start))
+
+    def mission_path(self, mission_id: str) -> Path:
+        """Get path to mission directory.
+
+        Args:
+            mission_id: Mission identifier (e.g., 'MF-001').
+
+        Returns:
+            Path to mission directory.
+        """
+        return self.missions_dir / mission_id
+
+    def sub_mission_path(self, mission_id: str, sub_mission_id: str) -> Path:
+        """Get path to sub-mission directory.
+
+        Args:
+            mission_id: Parent mission identifier.
+            sub_mission_id: Sub-mission identifier (e.g., 'MF-001-A').
+
+        Returns:
+            Path to sub-mission directory.
+        """
+        return self.mission_path(mission_id) / "sub-missions" / sub_mission_id
+
+    def exists(self) -> bool:
+        """Check if workspace is initialized.
+
+        Returns:
+            True if workspace directory exists.
+        """
+        return self.workspace_dir.exists()
+
+    def initialize(self) -> None:
+        """Initialize workspace directory structure.
+
+        Creates .missionforge/missions/ directory structure.
+        """
+        self.missions_dir.mkdir(parents=True, exist_ok=True)
+
+    def list_missions(self) -> list[str]:
+        """List all mission IDs in workspace.
+
+        Returns:
+            List of mission IDs.
+        """
+        if not self.missions_dir.exists():
+            return []
+
+        missions = []
+        for mission_dir in self.missions_dir.iterdir():
+            if mission_dir.is_dir() and (mission_dir / "mission.yaml").exists():
+                missions.append(mission_dir.name)
+        return sorted(missions)
+
+# Made with Bob
