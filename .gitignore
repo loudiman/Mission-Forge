@@ -76,3 +76,8 @@ Icon
 *.swp
 *.swo
 *~
+
+# Local-only directories
+.bob/
+.missionforge/
+issues/
