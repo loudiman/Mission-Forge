@@ -162,8 +162,8 @@ def _load_sub_missions(sub_missions_dir: Path) -> list[SubMission]:
 
         if sub_mission.id != expected_id:
             errors.append(
-                f"{sub_file}: YAML id '{sub_mission.id}' does not match "
-                f"file or directory name '{expected_id}'"
+                f"YAML id '{sub_mission.id}' does not match file or "
+                f"directory name '{expected_id}' in {sub_file}"
             )
 
         if sub_mission.id in loaded:
