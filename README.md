@@ -409,5 +409,5 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 <p align="center">
   <strong>Built with ❤️ for AI-assisted software development</strong><br>
-  <em>Made with Bob</em>
+  <em>Made with Bob and MissionForge</em>
 </p>
