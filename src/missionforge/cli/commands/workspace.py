@@ -54,7 +54,7 @@ def init_workspace(
     console.print(f"[green]✓[/green] Initialized mission {mission_id}")
     console.print("\n[bold]Next steps:[/bold]")
     console.print(f"1. Edit {mission_path / 'mission.yaml'}")
-    console.print(f"2. Run: missionforge mission validate {mission_id}")
+    console.print(f"2. Run: missionforge mission {mission_id} --validate")
 
 
 @app.command("status")
@@ -99,35 +99,71 @@ def workspace_status() -> None:
 
 
 def _create_mission_template(path: Path, mission_id: str) -> None:
-    """Create mission.yaml template.
+    """Create mission.yaml template with comprehensive documentation.
 
     Args:
         path: Path where template should be created.
         mission_id: Mission identifier.
     """
-    template = f"""# Mission: {mission_id}
+    template = f"""# Mission Configuration: {mission_id}
+# This file defines the parent mission scope, constraints, and validation criteria.
+
+# Mission identifier - must match directory name
 id: {mission_id}
+
+# High-level mission objective
+# Describe what should be accomplished and why
 goal: |
   Describe the high-level goal of this mission.
+  What problem are you solving?
   What should be accomplished?
 
-# Paths that sub-missions cannot modify
+# Paths that sub-missions CANNOT modify
+# Use glob patterns to protect critical code
+# Examples:
+#   - "core/**"           # Protect entire core directory
+#   - "config/*.json"     # Protect config files
+#   - "**/*_test.py"      # Protect test files
 forbidden_paths:
   - "core/**"
   - "config/**"
 
-# Aggregate metrics to validate across all sub-missions
+# Optional: Paths that sub-missions CAN modify
+# If not specified, all paths except forbidden_paths are allowed
+# allowed_paths:
+#   - "src/features/**"
+#   - "src/utils/**"
+
+# Aggregate metrics to validate across ALL sub-missions
+# Each metric must have at least one constraint: max, min, or target
+# Common metrics:
+#   - total_files_changed: Track scope creep
+#   - total_lines_changed: Measure impact
+#   - test_coverage: Ensure quality
 aggregate_metrics:
   total_files_changed:
     max: 50
+    description: "Limit scope to prevent mission creep"
   total_lines_changed:
     max: 1000
+    description: "Keep changes reviewable"
 
-# Test command to validate mission completion
+# Command to validate mission completion
+# This should run your test suite or validation checks
+# Examples:
+#   - "pytest tests/"
+#   - "npm test"
+#   - "make test"
 test_command: "pytest tests/"
 
-# Sub-missions will be listed here after decomposition
+# Sub-missions (populated by 'missionforge decompose')
+# Each sub-mission represents a discrete, reviewable unit of work
 sub_missions: []
+
+# Optional: Additional metadata
+# owner: "team-name"
+# priority: "high"
+# estimated_hours: 8
 """
     path.write_text(template)
 

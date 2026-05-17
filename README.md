@@ -24,7 +24,10 @@ pip install -e ".[dev]"
 ### 1. Initialize a Mission Workspace
 
 ```bash
-# Create a new mission
+# Create a new mission (shorthand)
+missionforge init MF-001
+
+# Or via the workspace subcommand
 missionforge workspace init MF-001
 
 # This creates:
@@ -37,7 +40,22 @@ missionforge workspace init MF-001
 #         └── sub-missions/     # Sub-mission directory
 ```
 
-### 2. Check Workspace Status
+### 2. Validate a Mission
+
+```bash
+# Validate mission.yaml structure and constraints
+missionforge mission MF-001 --validate
+```
+
+The validator checks:
+- YAML syntax
+- Required fields present
+- Mission ID format and directory-name consistency
+- Glob patterns are valid
+- Aggregate metrics structure
+- Test command is specified
+
+### 3. Check Workspace Status
 
 ```bash
 missionforge workspace status
@@ -45,7 +63,7 @@ missionforge workspace status
 
 This displays a table of all missions with their status and sub-mission count.
 
-### 3. View Help
+### 4. View Help
 
 ```bash
 # General help
@@ -54,6 +72,7 @@ missionforge --help
 # Command-specific help
 missionforge workspace --help
 missionforge workspace init --help
+missionforge mission --help
 ```
 
 ## CLI Commands
@@ -62,6 +81,41 @@ missionforge workspace init --help
 
 - `--verbose, -v`: Enable verbose output (DEBUG level logging)
 - `--log-file PATH`: Write logs to specified file
+
+### Init Command
+
+#### `missionforge init <MISSION_ID>`
+
+Initialize a new mission workspace (alias for `workspace init`).
+
+**Arguments:**
+- `MISSION_ID`: Mission identifier (format: `[A-Z]{2,4}-\d{3}[A-Z]?`, e.g., `MF-001`, `PROJ-042A`)
+
+**Options:**
+- `--force`: Overwrite existing mission
+
+**Example:**
+```bash
+missionforge init MF-001
+missionforge init PROJ-123 --force
+```
+
+### Mission Commands
+
+#### `missionforge mission <MISSION_ID> --validate`
+
+Validate a parent mission configuration file.
+
+**Arguments:**
+- `MISSION_ID`: Mission identifier
+
+**Options:**
+- `--validate`: Validate the mission.yaml file
+
+**Example:**
+```bash
+missionforge mission MF-001 --validate
+```
 
 ### Workspace Commands
 
@@ -104,19 +158,25 @@ missionforge/
 │   ├── cli/                    # CLI application
 │   │   ├── app.py             # Main Typer app
 │   │   ├── commands/          # Command groups
-│   │   │   └── workspace.py   # Workspace commands
+│   │   │   ├── workspace.py   # Workspace commands
+│   │   │   └── mission.py     # Mission commands
 │   │   └── utils/             # CLI utilities
 │   │       └── validation.py  # Input validation
 │   ├── core/                  # Core functionality
 │   │   ├── config.py          # Configuration management
 │   │   ├── exceptions.py      # Exception hierarchy
 │   │   ├── logging.py         # Logging setup
+│   │   ├── mission_validator.py # Mission validation adapter
 │   │   └── workspace.py       # Workspace path resolution
 │   ├── git/                   # Git operations
 │   │   └── operations.py      # Safe git wrappers
+│   ├── models/                # Pydantic models
+│   │   └── schemas.py         # Mission schema models
 │   ├── plugins/               # Plugin system
 │   │   ├── base.py           # Plugin base classes
 │   │   └── registry.py       # Plugin discovery
+│   ├── schemas/               # Schema validators
+│   │   └── validators.py      # SchemaValidator
 │   └── utils/                 # Utilities
 │       └── subprocess_utils.py # Safe subprocess execution
 ├── tests/                     # Test suite
@@ -159,7 +219,7 @@ pytest tests/
 pytest tests/ --cov=missionforge --cov-report=html
 
 # Run specific test file
-pytest tests/unit/test_workspace.py -v
+pytest tests/unit/test_mission_validator.py -v
 ```
 
 ### Code Quality
@@ -191,7 +251,7 @@ mypy src/
 - **Mission ID Validation**: Enforces standard format for mission identifiers
 - **Safe Git Operations**: No GitPython dependency, uses subprocess with proper error handling
 - **Plugin System**: Extensible architecture for custom functionality
-- **Comprehensive Testing**: 34 tests with 50% coverage of implemented features
+- **Comprehensive Testing**: Tests covering CLI commands, schema validation, and mission lifecycle
 
 ## Mission ID Format
 
