@@ -18,7 +18,7 @@ def mission_command(
 ) -> None:
     """Manage a mission."""
     # "validate" is a reserved compatibility alias — safe because valid mission IDs
-    # must match [A-Z]+-\d+ (e.g. MF-001), so this keyword can never be a real ID.
+    # must match ^[A-Z]{2,4}-\d{3}[A-Z]?$ (e.g. MF-001), so this keyword can never be a real ID.
     if mission_id == "validate":
         if not ctx.args:
             console.print("[red]Error:[/red] Mission ID is required")
