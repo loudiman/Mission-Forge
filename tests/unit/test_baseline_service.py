@@ -4,7 +4,6 @@ import json
 import os
 import stat
 from pathlib import Path
-from unittest.mock import Mock, patch
 
 import pytest
 from pydantic import ValidationError
@@ -30,15 +29,15 @@ def sub_mission_with_metrics(workspace: Workspace) -> str:
     """Create a sub-mission with metrics for testing."""
     sub_mission_id = "MF-001-A"
     parent_id = "MF-001"
-    
+
     # Create parent mission directory
     mission_path = workspace.mission_path(parent_id)
     mission_path.mkdir(parents=True, exist_ok=True)
-    
+
     # Create sub-mission directory
     sub_mission_path = workspace.sub_mission_path(parent_id, sub_mission_id)
     sub_mission_path.mkdir(parents=True, exist_ok=True)
-    
+
     # Create sub-mission.yaml with metrics
     sub_mission_yaml = sub_mission_path / "sub-mission.yaml"
     sub_mission_yaml.write_text("""id: MF-001-A
@@ -58,7 +57,7 @@ metrics:
     target: 85.0
 test_command: "pytest tests/"
 """)
-    
+
     return sub_mission_id
 
 
@@ -70,27 +69,27 @@ class TestCaptureBaseline:
     ):
         """Test successful baseline capture."""
         sub_mission_id = sub_mission_with_metrics
-        
+
         # Capture baseline
         todo_path = baseline_service.capture_baseline(sub_mission_id)
-        
+
         # Verify file was created
         assert todo_path.exists()
         assert todo_path.name == "baseline.todo.json"
-        
+
         # Verify content
         with open(todo_path) as f:
             data = json.load(f)
-        
+
         assert data["sub_mission_id"] == sub_mission_id
         assert data["status"] == "captured"
         assert data["timestamp"] is None
         assert len(data["metrics"]) == 3
-        
+
         # Verify metrics
         metric_ids = {m["metric_id"] for m in data["metrics"]}
         assert metric_ids == {"rest_endpoint_exists", "corba_references_count", "test_coverage"}
-        
+
         # Verify all values are None
         for metric in data["metrics"]:
             assert metric["value"] is None
@@ -100,16 +99,16 @@ class TestCaptureBaseline:
     ):
         """Test that capturing baseline when baseline.json exists raises error."""
         sub_mission_id = sub_mission_with_metrics
-        
+
         # Create existing baseline.json
         baseline_path = baseline_service.workspace.baseline_path(sub_mission_id)
         baseline_path.parent.mkdir(parents=True, exist_ok=True)
         baseline_path.write_text('{"sub_mission_id": "MF-001-A"}')
-        
+
         # Should raise error
         with pytest.raises(BaselineAlreadyExistsError) as exc_info:
             baseline_service.capture_baseline(sub_mission_id)
-        
+
         assert sub_mission_id in str(exc_info.value)
 
     def test_capture_baseline_with_force_overwrites(
@@ -117,12 +116,12 @@ class TestCaptureBaseline:
     ):
         """Test that force flag allows overwriting existing baseline."""
         sub_mission_id = sub_mission_with_metrics
-        
+
         # Create existing baseline.json
         baseline_path = baseline_service.workspace.baseline_path(sub_mission_id)
         baseline_path.parent.mkdir(parents=True, exist_ok=True)
         baseline_path.write_text('{"sub_mission_id": "MF-001-A"}')
-        
+
         # Should succeed with force=True
         todo_path = baseline_service.capture_baseline(sub_mission_id, force=True)
         assert todo_path.exists()
@@ -133,14 +132,14 @@ class TestCaptureBaseline:
         """Test that metric without target raises error."""
         sub_mission_id = "MF-002-A"
         parent_id = "MF-002"
-        
+
         # Create sub-mission with metric missing target
         mission_path = workspace.mission_path(parent_id)
         mission_path.mkdir(parents=True, exist_ok=True)
-        
+
         sub_mission_path = workspace.sub_mission_path(parent_id, sub_mission_id)
         sub_mission_path.mkdir(parents=True, exist_ok=True)
-        
+
         sub_mission_yaml = sub_mission_path / "sub-mission.yaml"
         sub_mission_yaml.write_text("""id: MF-002-A
 parent: MF-002
@@ -152,11 +151,11 @@ metrics:
     max: 100
 test_command: "pytest tests/"
 """)
-        
+
         # Should raise error
         with pytest.raises(BaselineValidationError) as exc_info:
             baseline_service.capture_baseline(sub_mission_id)
-        
+
         assert "bad_metric" in str(exc_info.value)
         assert "no target value" in str(exc_info.value)
 
@@ -169,11 +168,11 @@ class TestCommitBaseline:
     ):
         """Test successful baseline commit."""
         sub_mission_id = sub_mission_with_metrics
-        
+
         # Create baseline.todo.json with filled values
         todo_path = baseline_service.workspace.baseline_todo_path(sub_mission_id)
         todo_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         todo_data = {
             "sub_mission_id": sub_mission_id,
             "timestamp": None,
@@ -199,26 +198,26 @@ class TestCommitBaseline:
                 },
             ],
         }
-        
+
         with open(todo_path, "w") as f:
             json.dump(todo_data, f)
-        
+
         # Commit baseline
         baseline_path = baseline_service.commit_baseline(sub_mission_id)
-        
+
         # Verify file was created
         assert baseline_path.exists()
         assert baseline_path.name == "baseline.json"
-        
+
         # Verify content
         with open(baseline_path) as f:
             data = json.load(f)
-        
+
         assert data["sub_mission_id"] == sub_mission_id
         assert data["status"] == "committed"
         assert data["timestamp"] is not None
         assert len(data["metrics"]) == 3
-        
+
         # Verify file is read-only
         file_stat = os.stat(baseline_path)
         mode = file_stat.st_mode
@@ -232,10 +231,10 @@ class TestCommitBaseline:
     ):
         """Test that committing without capture raises error."""
         sub_mission_id = "MF-001-A"
-        
+
         with pytest.raises(BaselineNotCapturedError) as exc_info:
             baseline_service.commit_baseline(sub_mission_id)
-        
+
         assert sub_mission_id in str(exc_info.value)
 
     def test_commit_baseline_with_incomplete_values_raises_error(
@@ -243,11 +242,11 @@ class TestCommitBaseline:
     ):
         """Test that committing with incomplete values raises error."""
         sub_mission_id = sub_mission_with_metrics
-        
+
         # Create baseline.todo.json with some null values
         todo_path = baseline_service.workspace.baseline_todo_path(sub_mission_id)
         todo_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         todo_data = {
             "sub_mission_id": sub_mission_id,
             "timestamp": None,
@@ -267,14 +266,14 @@ class TestCommitBaseline:
                 },
             ],
         }
-        
+
         with open(todo_path, "w") as f:
             json.dump(todo_data, f)
-        
+
         # Should raise error
         with pytest.raises(BaselineIncompleteError) as exc_info:
             baseline_service.commit_baseline(sub_mission_id)
-        
+
         assert "rest_endpoint_exists" in str(exc_info.value)
 
     def test_commit_baseline_with_type_mismatch_raises_error(
@@ -282,11 +281,11 @@ class TestCommitBaseline:
     ):
         """Test that committing with type mismatch raises error."""
         sub_mission_id = sub_mission_with_metrics
-        
+
         # Create baseline.todo.json with wrong type
         todo_path = baseline_service.workspace.baseline_todo_path(sub_mission_id)
         todo_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         todo_data = {
             "sub_mission_id": sub_mission_id,
             "timestamp": None,
@@ -300,14 +299,14 @@ class TestCommitBaseline:
                 },
             ],
         }
-        
+
         with open(todo_path, "w") as f:
             json.dump(todo_data, f)
-        
+
         # Should raise Pydantic ValidationError (caught during model parsing)
         with pytest.raises(ValidationError) as exc_info:
             baseline_service.commit_baseline(sub_mission_id)
-        
+
         assert "Value type" in str(exc_info.value)
 
     def test_commit_baseline_float_int_compatibility(
@@ -315,11 +314,11 @@ class TestCommitBaseline:
     ):
         """Test that float/int type compatibility is allowed."""
         sub_mission_id = sub_mission_with_metrics
-        
+
         # Create baseline.todo.json with int instead of float
         todo_path = baseline_service.workspace.baseline_todo_path(sub_mission_id)
         todo_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         todo_data = {
             "sub_mission_id": sub_mission_id,
             "timestamp": None,
@@ -333,13 +332,13 @@ class TestCommitBaseline:
                 },
             ],
         }
-        
+
         with open(todo_path, "w") as f:
             json.dump(todo_data, f)
-        
+
         # Should succeed - numeric types are compatible
         baseline_path = baseline_service.commit_baseline(sub_mission_id)
-        
+
         assert baseline_path.exists()
         with open(baseline_path) as f:
             data = json.load(f)
@@ -354,15 +353,15 @@ class TestResetBaseline:
     ):
         """Test that reset removes baseline.todo.json."""
         sub_mission_id = sub_mission_with_metrics
-        
+
         # Create baseline.todo.json
         todo_path = baseline_service.workspace.baseline_todo_path(sub_mission_id)
         todo_path.parent.mkdir(parents=True, exist_ok=True)
         todo_path.write_text('{"sub_mission_id": "MF-001-A"}')
-        
+
         # Reset
         baseline_service.reset_baseline(sub_mission_id)
-        
+
         # Verify file was removed
         assert not todo_path.exists()
 
@@ -371,16 +370,16 @@ class TestResetBaseline:
     ):
         """Test that reset without force raises error for committed baseline."""
         sub_mission_id = sub_mission_with_metrics
-        
+
         # Create baseline.json
         baseline_path = baseline_service.workspace.baseline_path(sub_mission_id)
         baseline_path.parent.mkdir(parents=True, exist_ok=True)
         baseline_path.write_text('{"sub_mission_id": "MF-001-A"}')
-        
+
         # Should raise error
         with pytest.raises(BaselineValidationError) as exc_info:
             baseline_service.reset_baseline(sub_mission_id)
-        
+
         assert "force" in str(exc_info.value).lower()
 
     def test_reset_baseline_with_force_removes_committed(
@@ -388,16 +387,16 @@ class TestResetBaseline:
     ):
         """Test that reset with force removes committed baseline."""
         sub_mission_id = sub_mission_with_metrics
-        
+
         # Create baseline.json (read-only)
         baseline_path = baseline_service.workspace.baseline_path(sub_mission_id)
         baseline_path.parent.mkdir(parents=True, exist_ok=True)
         baseline_path.write_text('{"sub_mission_id": "MF-001-A"}')
         os.chmod(baseline_path, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
-        
+
         # Reset with force
         baseline_service.reset_baseline(sub_mission_id, force=True)
-        
+
         # Verify file was removed
         assert not baseline_path.exists()
 
@@ -406,18 +405,18 @@ class TestResetBaseline:
     ):
         """Test that reset with force removes both files."""
         sub_mission_id = sub_mission_with_metrics
-        
+
         # Create both files
         todo_path = baseline_service.workspace.baseline_todo_path(sub_mission_id)
         baseline_path = baseline_service.workspace.baseline_path(sub_mission_id)
-        
+
         todo_path.parent.mkdir(parents=True, exist_ok=True)
         todo_path.write_text('{"sub_mission_id": "MF-001-A"}')
         baseline_path.write_text('{"sub_mission_id": "MF-001-A"}')
-        
+
         # Reset with force
         baseline_service.reset_baseline(sub_mission_id, force=True)
-        
+
         # Verify both files were removed
         assert not todo_path.exists()
         assert not baseline_path.exists()
@@ -427,10 +426,10 @@ class TestResetBaseline:
     ):
         """Test that reset with no files raises error."""
         sub_mission_id = "MF-001-A"
-        
+
         with pytest.raises(BaselineValidationError) as exc_info:
             baseline_service.reset_baseline(sub_mission_id)
-        
+
         assert "No baseline files found" in str(exc_info.value)
 
 
@@ -442,11 +441,11 @@ class TestFileImmutability:
     ):
         """Test that committed baseline.json is read-only."""
         sub_mission_id = sub_mission_with_metrics
-        
+
         # Create and commit baseline
         todo_path = baseline_service.workspace.baseline_todo_path(sub_mission_id)
         todo_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         todo_data = {
             "sub_mission_id": sub_mission_id,
             "timestamp": None,
@@ -460,12 +459,12 @@ class TestFileImmutability:
                 },
             ],
         }
-        
+
         with open(todo_path, "w") as f:
             json.dump(todo_data, f)
-        
+
         baseline_path = baseline_service.commit_baseline(sub_mission_id)
-        
+
         # Try to write to file (should fail)
         with pytest.raises(PermissionError):
             with open(baseline_path, "w") as f:
@@ -476,11 +475,11 @@ class TestFileImmutability:
     ):
         """Test that committed baseline cannot be deleted without changing permissions."""
         sub_mission_id = sub_mission_with_metrics
-        
+
         # Create and commit baseline
         todo_path = baseline_service.workspace.baseline_todo_path(sub_mission_id)
         todo_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         todo_data = {
             "sub_mission_id": sub_mission_id,
             "timestamp": None,
@@ -494,12 +493,12 @@ class TestFileImmutability:
                 },
             ],
         }
-        
+
         with open(todo_path, "w") as f:
             json.dump(todo_data, f)
-        
+
         baseline_path = baseline_service.commit_baseline(sub_mission_id)
-        
+
         # Try to delete file (should fail on most systems)
         # Note: On some systems, directory permissions may allow deletion
         # even if file is read-only, so we just verify the file is read-only
