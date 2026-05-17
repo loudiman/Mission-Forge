@@ -11,6 +11,7 @@ from typing import Dict, List, Optional
 import yaml
 
 from missionforge.core.exceptions import MissionForgeError
+from .cache.file_cache import file_cache
 
 
 class RepositoryError(MissionForgeError):
@@ -78,57 +79,77 @@ class MissionRepository:
         if not missions_dir.exists():
             return []
         
-        return [
+        return sorted([
             d.name for d in missions_dir.iterdir()
             if d.is_dir() and not d.name.startswith(".")
-        ]
-    
-    def read_mission_yaml(self, mission_id: str) -> Dict:
+        ])
+        
+    def read_mission_yaml(self, mission_id: str) -> Optional[Dict]:
         """
         Read and parse mission.yaml for a parent mission.
-        
-        Args:
-            mission_id: Parent mission ID (e.g., 'MF-001')
-            
-        Returns:
-            Parsed YAML data as dictionary
-            
-        Raises:
-            RepositoryError: If mission file not found or invalid
         """
         mission_file = (
             self.missionforge_dir / "missions" / mission_id / "mission.yaml"
         )
-        
         if not mission_file.exists():
-            raise RepositoryError(f"Mission file not found: {mission_id}")
+            return None
+            
+        def _loader(path: Path) -> Dict:
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    return yaml.safe_load(f) or {}
+            except yaml.YAMLError as e:
+                raise RepositoryError(f"Invalid YAML in {mission_id}: {e}")
+                
+        return file_cache.get(mission_file, _loader)
         
-        try:
-            with open(mission_file, "r", encoding="utf-8") as f:
-                return yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            raise RepositoryError(f"Invalid YAML in {mission_id}: {e}")
+    def read_sub_mission_yaml(self, mission_id: str, sub_id: str) -> Optional[Dict]:
+        """
+        Read and parse sub-mission.yaml.
+        """
+        sub_file = (
+            self.missionforge_dir / "missions" / mission_id / "sub-missions" / f"{sub_id}.yaml"
+        )
+        if not sub_file.exists():
+            return None
+            
+        def _loader(path: Path) -> Dict:
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    return yaml.safe_load(f) or {}
+            except yaml.YAMLError as e:
+                raise RepositoryError(f"Invalid YAML in {sub_id}: {e}")
+                
+        return file_cache.get(sub_file, _loader)
+
+    def read_report(self, mission_id: str) -> Optional[str]:
+        """
+        Read mission report markdown.
+        """
+        report_file = (
+            self.missionforge_dir / "missions" / mission_id / "report.md"
+        )
+        if not report_file.exists():
+            return None
+            
+        def _loader(path: Path) -> str:
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+                
+        return file_cache.get(report_file, _loader)
     
     def read_json_file(self, file_path: Path) -> Dict:
         """
         Read and parse a JSON file.
-        
-        Args:
-            file_path: Path to JSON file
-            
-        Returns:
-            Parsed JSON data as dictionary
-            
-        Raises:
-            RepositoryError: If file not found or invalid JSON
         """
         if not file_path.exists():
             raise RepositoryError(f"File not found: {file_path}")
-        
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except json.JSONDecodeError as e:
-            raise RepositoryError(f"Invalid JSON in {file_path}: {e}")
-
-# Made with Bob
+            
+        def _loader(path: Path) -> Dict:
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except json.JSONDecodeError as e:
+                raise RepositoryError(f"Invalid JSON in {file_path}: {e}")
+                
+        return file_cache.get(file_path, _loader)
