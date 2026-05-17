@@ -236,9 +236,7 @@ This file defines the execution order and dependencies.
     console.print(syntax)
 
 
-def _display_current_status(
-    sub_missions_dir: Path, mission_path: Path, parent_id: str
-) -> None:
+def _display_current_status(sub_missions_dir: Path, mission_path: Path, parent_id: str) -> None:
     """Display current status of sub-missions and plan."""
 
     table = Table(title="Current Files", show_header=True, header_style="bold cyan")
@@ -394,7 +392,9 @@ def validate_submission_command(
                 f"  These sub-missions must be created first"
             )
         else:
-            console.print(f"[green]✓[/green] All dependencies exist: {', '.join(sub_mission.depends_on)}")
+            console.print(
+                f"[green]✓[/green] All dependencies exist: {', '.join(sub_mission.depends_on)}"
+            )
 
     # Display results
     if errors:
@@ -426,9 +426,7 @@ def validate_submission_command(
     )
 
 
-def _check_path_overlaps(
-    sub_mission, sub_missions_dir: Path, current_file: Path
-) -> list[str]:
+def _check_path_overlaps(sub_mission, sub_missions_dir: Path, current_file: Path) -> list[str]:
     """Check for overlapping allowed_paths with other sub-missions."""
     overlaps = []
 
@@ -462,9 +460,7 @@ def _check_path_overlaps(
                     conflict_paths.add(path)
 
             for path in sorted(conflict_paths):
-                overlaps.append(
-                    f"Path '{path}' overlaps with {other_mission.id}'s allowed_paths"
-                )
+                overlaps.append(f"Path '{path}' overlaps with {other_mission.id}'s allowed_paths")
         except Exception:
             # Skip invalid files
             continue

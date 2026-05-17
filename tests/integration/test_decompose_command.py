@@ -1,6 +1,5 @@
 """Integration tests for decompose command."""
 
-
 import pytest
 from typer.testing import CliRunner
 
@@ -262,7 +261,11 @@ allowed_paths:
 
         # Create sub-mission with missing dependency
         sub_missions_dir = (
-            test_mission_with_sub_missions / ".missionforge" / "missions" / "MF-001" / "sub-missions"
+            test_mission_with_sub_missions
+            / ".missionforge"
+            / "missions"
+            / "MF-001"
+            / "sub-missions"
         )
 
         missing_dep = sub_missions_dir / "MF-001-C.yaml"
@@ -288,7 +291,11 @@ depends_on:
 
         # Create sub-mission with overlapping path
         sub_missions_dir = (
-            test_mission_with_sub_missions / ".missionforge" / "missions" / "MF-001" / "sub-missions"
+            test_mission_with_sub_missions
+            / ".missionforge"
+            / "missions"
+            / "MF-001"
+            / "sub-missions"
         )
 
         overlap = sub_missions_dir / "MF-001-C.yaml"
@@ -320,7 +327,11 @@ allowed_paths:
         monkeypatch.chdir(test_mission_with_sub_missions)
 
         sub_missions_dir = (
-            test_mission_with_sub_missions / ".missionforge" / "missions" / "MF-001" / "sub-missions"
+            test_mission_with_sub_missions
+            / ".missionforge"
+            / "missions"
+            / "MF-001"
+            / "sub-missions"
         )
 
         overlap = sub_missions_dir / "MF-001-C.yaml"
@@ -337,7 +348,6 @@ allowed_paths:
         assert result.exit_code == 0
         # The conflicting path must appear exactly once, not duplicated
         assert result.stdout.count("src/module_a/**") == 1
-
 
     def test_validate_submission_fails_for_nonexistent_file(self, test_mission, monkeypatch):
         """Test that validation fails for non-existent sub-mission file."""

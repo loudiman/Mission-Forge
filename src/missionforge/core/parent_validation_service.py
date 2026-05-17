@@ -57,54 +57,44 @@ class ParentValidationService:
         if sub_missions.failed > 0 or sub_missions.blocked > 0:
             raise ParentValidationFailedError(
                 mission_id,
-                f"{sub_missions.failed} sub-mission(s) FAILED, {sub_missions.blocked} BLOCKED"
+                f"{sub_missions.failed} sub-mission(s) FAILED, {sub_missions.blocked} BLOCKED",
             )
 
         # Execute parent test if defined
         parent_test: ParentTestResult | None = None
         if parent_mission.test_command:
             parent_test = self._execute_parent_test(
-                parent_mission.test_command,
-                self.workspace.root
+                parent_mission.test_command, self.workspace.root
             )
             if not parent_test.passed:
                 raise ParentValidationFailedError(
-                    mission_id,
-                    f"Parent test failed (exit code: {parent_test.exit_code})"
+                    mission_id, f"Parent test failed (exit code: {parent_test.exit_code})"
                 )
 
         # Validate aggregate metrics if defined
         aggregate_metrics: list[AggregateMetricResult] = []
         if parent_mission.aggregate_metrics:
             aggregate_metrics = self._validate_aggregate_metrics(
-                mission_id,
-                parent_mission.aggregate_metrics
+                mission_id, parent_mission.aggregate_metrics
             )
             failed_metrics = [m.metric_id for m in aggregate_metrics if m.status == "FAILED"]
             if failed_metrics:
                 raise ParentValidationFailedError(
-                    mission_id,
-                    f"Aggregate metrics failed: {', '.join(failed_metrics)}"
+                    mission_id, f"Aggregate metrics failed: {', '.join(failed_metrics)}"
                 )
 
         # Check forbidden paths across all sub-missions
         forbidden_check = self._check_forbidden_paths(
-            mission_id,
-            parent_mission.sub_missions,
-            parent_mission.forbidden_paths
+            mission_id, parent_mission.sub_missions, parent_mission.forbidden_paths
         )
         if forbidden_check.violated:
             raise ParentValidationFailedError(
-                mission_id,
-                f"Forbidden paths violated: {len(forbidden_check.violations)} file(s)"
+                mission_id, f"Forbidden paths violated: {len(forbidden_check.violations)} file(s)"
             )
 
         # Determine overall status
         status = self._determine_parent_status(
-            sub_missions,
-            parent_test,
-            aggregate_metrics,
-            forbidden_check
+            sub_missions, parent_test, aggregate_metrics, forbidden_check
         )
 
         # Create validation result
@@ -115,7 +105,7 @@ class ParentValidationService:
             sub_missions=sub_missions,
             aggregate_metrics=aggregate_metrics,
             parent_test=parent_test,
-            forbidden_paths_check=forbidden_check
+            forbidden_paths_check=forbidden_check,
         )
 
         # Write immutable validation.json
@@ -131,9 +121,7 @@ class ParentValidationService:
         return out_path
 
     def _aggregate_sub_missions(
-        self,
-        mission_id: str,
-        sub_mission_ids: list[str]
+        self, mission_id: str, sub_mission_ids: list[str]
     ) -> SubMissionsAggregate:
         """Load and aggregate all sub-mission validation results."""
         details: list[SubMissionSummary] = []
@@ -160,11 +148,9 @@ class ParentValidationService:
             elif status == "BLOCKED":
                 blocked += 1
 
-            details.append(SubMissionSummary(
-                id=sub_id,
-                status=status,
-                timestamp=validation.timestamp
-            ))
+            details.append(
+                SubMissionSummary(id=sub_id, status=status, timestamp=validation.timestamp)
+            )
 
         if missing:
             raise ParentValidationIncompleteError(mission_id, missing)
@@ -174,14 +160,10 @@ class ParentValidationService:
             passed=passed,
             failed=failed,
             blocked=blocked,
-            details=details
+            details=details,
         )
 
-    def _execute_parent_test(
-        self,
-        test_command: str,
-        cwd: Path
-    ) -> ParentTestResult:
+    def _execute_parent_test(self, test_command: str, cwd: Path) -> ParentTestResult:
         """Execute parent-level test command."""
         cmd = shlex.split(test_command)
         result = execute_test_command(cmd, cwd=cwd)
@@ -193,13 +175,11 @@ class ParentValidationService:
             exit_code=result.exit_code,
             output=combined_output,
             passed=result.success,
-            duration=round(result.duration, 2)
+            duration=round(result.duration, 2),
         )
 
     def _validate_aggregate_metrics(
-        self,
-        mission_id: str,
-        metrics_def: dict
+        self, mission_id: str, metrics_def: dict
     ) -> list[AggregateMetricResult]:
         """Validate aggregate metrics.
 
@@ -212,10 +192,7 @@ class ParentValidationService:
         return []
 
     def _check_forbidden_paths(
-        self,
-        mission_id: str,
-        sub_mission_ids: list[str],
-        forbidden_paths: list[str]
+        self, mission_id: str, sub_mission_ids: list[str], forbidden_paths: list[str]
     ) -> ForbiddenPathsCheck:
         """Check forbidden paths across all sub-missions."""
         if not forbidden_paths:
@@ -231,9 +208,7 @@ class ParentValidationService:
                 data = json.load(f)
 
             validation = SubMissionValidation(**data)
-            all_changed_files.extend(
-                validation.deterministic_evidence.files_changed
-            )
+            all_changed_files.extend(validation.deterministic_evidence.files_changed)
 
         # Remove duplicates
         all_changed_files = list(set(all_changed_files))
@@ -242,22 +217,19 @@ class ParentValidationService:
         result = validate_paths_against_scope(
             changed_files=[Path(f) for f in all_changed_files],
             allowed_patterns=[],  # Not checking allowed for parent
-            forbidden_patterns=forbidden_paths
+            forbidden_patterns=forbidden_paths,
         )
 
         violations = result["forbidden_files"]
 
-        return ForbiddenPathsCheck(
-            violated=len(violations) > 0,
-            violations=violations
-        )
+        return ForbiddenPathsCheck(violated=len(violations) > 0, violations=violations)
 
     def _determine_parent_status(
         self,
         sub_missions: SubMissionsAggregate,
         parent_test: ParentTestResult | None,
         aggregate_metrics: list[AggregateMetricResult],
-        forbidden_check: ForbiddenPathsCheck
+        forbidden_check: ForbiddenPathsCheck,
     ) -> str:
         """Determine overall parent mission status."""
         # FAILED: Any sub-mission not PASSED

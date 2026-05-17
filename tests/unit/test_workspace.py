@@ -68,11 +68,7 @@ def test_sub_mission_definition_path_prefers_canonical(workspace: Workspace):
     mission_id = "MF-001"
     sub_mission_id = "MF-001-A"
     canonical = (
-        workspace.missions_dir
-        / mission_id
-        / "sub-missions"
-        / sub_mission_id
-        / "sub-mission.yaml"
+        workspace.missions_dir / mission_id / "sub-missions" / sub_mission_id / "sub-mission.yaml"
     )
     canonical.parent.mkdir(parents=True)
     canonical.write_text("id: MF-001-A\n")
@@ -140,5 +136,6 @@ def test_list_missions_ignores_directories_without_yaml(workspace: Workspace):
 
     missions = workspace.list_missions()
     assert "INVALID-001" not in missions
+
 
 # Made with Bob

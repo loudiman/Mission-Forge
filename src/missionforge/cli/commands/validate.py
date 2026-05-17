@@ -45,7 +45,9 @@ def capture_validation(
         if not files_changed:
             console.print("  (none)")
 
-        scope_ok = scope_check.get("allowed_paths_satisfied", True) and not scope_check.get("forbidden_paths_violated", False)
+        scope_ok = scope_check.get("allowed_paths_satisfied", True) and not scope_check.get(
+            "forbidden_paths_violated", False
+        )
         scope_icon = "[green]✓[/green]" if scope_ok else "[red]✗[/red]"
         console.print(f"\n[bold]Scope check:[/bold] {scope_icon}")
         violations = scope_check.get("violations", [])
@@ -88,7 +90,9 @@ def commit_validation(
         overall = data.get("status", "UNKNOWN")
         metrics = data.get("metrics", [])
 
-        status_color = {"PASSED": "green", "FAILED": "red", "BLOCKED": "yellow"}.get(overall, "white")
+        status_color = {"PASSED": "green", "FAILED": "red", "BLOCKED": "yellow"}.get(
+            overall, "white"
+        )
         console.print(f"\n[bold]Overall Status:[/bold] [{status_color}]{overall}[/{status_color}]")
         console.print(f"Committed: {validation_path}")
 
@@ -157,7 +161,9 @@ def validate_parent(
         console.print(f"\n[bold]Sub-missions ({sub_missions['total']} total):[/bold]")
         for detail in sub_missions.get("details", []):
             status = detail["status"]
-            status_color = {"PASSED": "green", "FAILED": "red", "BLOCKED": "yellow"}.get(status, "white")
+            status_color = {"PASSED": "green", "FAILED": "red", "BLOCKED": "yellow"}.get(
+                status, "white"
+            )
             icon = {"PASSED": "✓", "FAILED": "✗", "BLOCKED": "⚠"}.get(status, "?")
             console.print(f"  [{status_color}]{icon}[/{status_color}] {detail['id']}: {status}")
 
@@ -194,14 +200,18 @@ def validate_parent(
         # Display forbidden paths check
         console.print("\n[bold]Forbidden paths check:[/bold]")
         if forbidden_check.get("violated"):
-            console.print(f"  [red]✗ {len(forbidden_check['violations'])} violation(s) detected[/red]")
+            console.print(
+                f"  [red]✗ {len(forbidden_check['violations'])} violation(s) detected[/red]"
+            )
             for violation in forbidden_check.get("violations", [])[:5]:  # Show first 5
                 console.print(f"    • {violation}")
         else:
             console.print("  [green]✓ No violations detected[/green]")
 
         # Display overall status
-        status_color = {"PASSED": "green", "FAILED": "red", "INCOMPLETE": "yellow"}.get(overall, "white")
+        status_color = {"PASSED": "green", "FAILED": "red", "INCOMPLETE": "yellow"}.get(
+            overall, "white"
+        )
         console.print(f"\n[bold]Overall Status:[/bold] [{status_color}]{overall}[/{status_color}]")
         console.print(f"Committed: {validation_path}")
         console.print("\n[yellow]⚠️  validation.json is now immutable[/yellow]")

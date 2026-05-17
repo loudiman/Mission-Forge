@@ -249,9 +249,7 @@ class TestCommitBaseline:
         assert not (mode & stat.S_IWGRP)
         assert not (mode & stat.S_IWOTH)
 
-    def test_commit_baseline_without_capture_raises_error(
-        self, baseline_service: BaselineService
-    ):
+    def test_commit_baseline_without_capture_raises_error(self, baseline_service: BaselineService):
         """Test that committing without capture raises error."""
         sub_mission_id = "MF-001-A"
 
@@ -444,9 +442,7 @@ class TestResetBaseline:
         assert not todo_path.exists()
         assert not baseline_path.exists()
 
-    def test_reset_baseline_with_no_files_raises_error(
-        self, baseline_service: BaselineService
-    ):
+    def test_reset_baseline_with_no_files_raises_error(self, baseline_service: BaselineService):
         """Test that reset with no files raises error."""
         sub_mission_id = "MF-001-A"
 

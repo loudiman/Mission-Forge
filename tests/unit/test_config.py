@@ -51,9 +51,7 @@ git_diff_context: 5
 
 def test_config_save(tmp_path: Path):
     """Test saving config to file."""
-    config = MissionForgeConfig(
-        test_timeout=600, log_level="DEBUG", git_diff_context=5
-    )
+    config = MissionForgeConfig(test_timeout=600, log_level="DEBUG", git_diff_context=5)
 
     config_path = tmp_path / "config.yaml"
     config.save(config_path)
@@ -137,5 +135,6 @@ def test_config_validation():
     # Invalid types should raise validation error
     with pytest.raises(ValidationError):
         MissionForgeConfig(test_timeout="invalid")
+
 
 # Made with Bob

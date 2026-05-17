@@ -62,11 +62,11 @@ sub_missions:
                 "scope_check": {
                     "allowed_paths_satisfied": True,
                     "forbidden_paths_violated": False,
-                    "violations": []
+                    "violations": [],
                 },
-                "test_results": None
+                "test_results": None,
             },
-            "metrics": []
+            "metrics": [],
         }
 
         validation_path = mock_workspace.validation_path(sub_id)
@@ -84,10 +84,7 @@ class TestAggregateSubMissions:
         workspace, mission_id = parent_mission_setup
         service = ParentValidationService(workspace)
 
-        result = service._aggregate_sub_missions(
-            mission_id,
-            ["MF-001-A", "MF-001-B"]
-        )
+        result = service._aggregate_sub_missions(mission_id, ["MF-001-A", "MF-001-B"])
 
         assert result.total == 2
         assert result.passed == 2
@@ -108,10 +105,7 @@ class TestAggregateSubMissions:
         with open(validation_path, "w") as f:
             json.dump(data, f)
 
-        result = service._aggregate_sub_missions(
-            mission_id,
-            ["MF-001-A", "MF-001-B"]
-        )
+        result = service._aggregate_sub_missions(mission_id, ["MF-001-A", "MF-001-B"])
 
         assert result.total == 2
         assert result.passed == 1
@@ -128,10 +122,7 @@ class TestAggregateSubMissions:
         validation_path.unlink()
 
         with pytest.raises(ParentValidationIncompleteError) as exc_info:
-            service._aggregate_sub_missions(
-                mission_id,
-                ["MF-001-A", "MF-001-B"]
-            )
+            service._aggregate_sub_missions(mission_id, ["MF-001-A", "MF-001-B"])
 
         assert "MF-001-B" in str(exc_info.value)
 
@@ -150,16 +141,12 @@ class TestDetermineParentStatus:
             blocked=0,
             details=[
                 SubMissionSummary(id="MF-001-A", status="PASSED", timestamp=None),
-                SubMissionSummary(id="MF-001-B", status="PASSED", timestamp=None)
-            ]
+                SubMissionSummary(id="MF-001-B", status="PASSED", timestamp=None),
+            ],
         )
 
         parent_test = ParentTestResult(
-            command="pytest",
-            exit_code=0,
-            output="All tests passed",
-            passed=True,
-            duration=1.5
+            command="pytest", exit_code=0, output="All tests passed", passed=True, duration=1.5
         )
 
         aggregate_metrics = [
@@ -168,20 +155,14 @@ class TestDetermineParentStatus:
                 baseline_value=None,
                 target_value=100,
                 final_value=100,
-                status="PASSED"
+                status="PASSED",
             )
         ]
 
-        forbidden_check = ForbiddenPathsCheck(
-            violated=False,
-            violations=[]
-        )
+        forbidden_check = ForbiddenPathsCheck(violated=False, violations=[])
 
         status = service._determine_parent_status(
-            sub_missions,
-            parent_test,
-            aggregate_metrics,
-            forbidden_check
+            sub_missions, parent_test, aggregate_metrics, forbidden_check
         )
 
         assert status == "PASSED"
@@ -197,15 +178,12 @@ class TestDetermineParentStatus:
             blocked=0,
             details=[
                 SubMissionSummary(id="MF-001-A", status="PASSED", timestamp=None),
-                SubMissionSummary(id="MF-001-B", status="FAILED", timestamp=None)
-            ]
+                SubMissionSummary(id="MF-001-B", status="FAILED", timestamp=None),
+            ],
         )
 
         status = service._determine_parent_status(
-            sub_missions,
-            None,
-            [],
-            ForbiddenPathsCheck(violated=False, violations=[])
+            sub_missions, None, [], ForbiddenPathsCheck(violated=False, violations=[])
         )
 
         assert status == "FAILED"
@@ -221,23 +199,16 @@ class TestDetermineParentStatus:
             blocked=0,
             details=[
                 SubMissionSummary(id="MF-001-A", status="PASSED", timestamp=None),
-                SubMissionSummary(id="MF-001-B", status="PASSED", timestamp=None)
-            ]
+                SubMissionSummary(id="MF-001-B", status="PASSED", timestamp=None),
+            ],
         )
 
         parent_test = ParentTestResult(
-            command="pytest",
-            exit_code=1,
-            output="Tests failed",
-            passed=False,
-            duration=1.5
+            command="pytest", exit_code=1, output="Tests failed", passed=False, duration=1.5
         )
 
         status = service._determine_parent_status(
-            sub_missions,
-            parent_test,
-            [],
-            ForbiddenPathsCheck(violated=False, violations=[])
+            sub_missions, parent_test, [], ForbiddenPathsCheck(violated=False, violations=[])
         )
 
         assert status == "FAILED"
@@ -253,8 +224,8 @@ class TestDetermineParentStatus:
             blocked=0,
             details=[
                 SubMissionSummary(id="MF-001-A", status="PASSED", timestamp=None),
-                SubMissionSummary(id="MF-001-B", status="PASSED", timestamp=None)
-            ]
+                SubMissionSummary(id="MF-001-B", status="PASSED", timestamp=None),
+            ],
         )
 
         aggregate_metrics = [
@@ -263,7 +234,7 @@ class TestDetermineParentStatus:
                 baseline_value=None,
                 target_value=100,
                 final_value=50,
-                status="FAILED"
+                status="FAILED",
             )
         ]
 
@@ -271,7 +242,7 @@ class TestDetermineParentStatus:
             sub_missions,
             None,
             aggregate_metrics,
-            ForbiddenPathsCheck(violated=False, violations=[])
+            ForbiddenPathsCheck(violated=False, violations=[]),
         )
 
         assert status == "FAILED"
@@ -287,21 +258,13 @@ class TestDetermineParentStatus:
             blocked=0,
             details=[
                 SubMissionSummary(id="MF-001-A", status="PASSED", timestamp=None),
-                SubMissionSummary(id="MF-001-B", status="PASSED", timestamp=None)
-            ]
+                SubMissionSummary(id="MF-001-B", status="PASSED", timestamp=None),
+            ],
         )
 
-        forbidden_check = ForbiddenPathsCheck(
-            violated=True,
-            violations=["core/important.py"]
-        )
+        forbidden_check = ForbiddenPathsCheck(violated=True, violations=["core/important.py"])
 
-        status = service._determine_parent_status(
-            sub_missions,
-            None,
-            [],
-            forbidden_check
-        )
+        status = service._determine_parent_status(sub_missions, None, [], forbidden_check)
 
         assert status == "FAILED"
 
@@ -314,11 +277,7 @@ class TestCheckForbiddenPaths:
         workspace, mission_id = parent_mission_setup
         service = ParentValidationService(workspace)
 
-        result = service._check_forbidden_paths(
-            mission_id,
-            ["MF-001-A", "MF-001-B"],
-            ["core/**"]
-        )
+        result = service._check_forbidden_paths(mission_id, ["MF-001-A", "MF-001-B"], ["core/**"])
 
         assert not result.violated
         assert len(result.violations) == 0
@@ -336,11 +295,7 @@ class TestCheckForbiddenPaths:
         with open(validation_path, "w") as f:
             json.dump(data, f)
 
-        result = service._check_forbidden_paths(
-            mission_id,
-            ["MF-001-A", "MF-001-B"],
-            ["core/**"]
-        )
+        result = service._check_forbidden_paths(mission_id, ["MF-001-A", "MF-001-B"], ["core/**"])
 
         assert result.violated
         assert "core/important.py" in result.violations
@@ -350,11 +305,7 @@ class TestCheckForbiddenPaths:
         workspace, mission_id = parent_mission_setup
         service = ParentValidationService(workspace)
 
-        result = service._check_forbidden_paths(
-            mission_id,
-            ["MF-001-A", "MF-001-B"],
-            []
-        )
+        result = service._check_forbidden_paths(mission_id, ["MF-001-A", "MF-001-B"], [])
 
         assert not result.violated
         assert len(result.violations) == 0
@@ -374,7 +325,10 @@ class TestExecuteParentTest:
         mock_result.success = True
         mock_result.duration = 1.5
 
-        with patch("missionforge.core.parent_validation_service.execute_test_command", return_value=mock_result):
+        with patch(
+            "missionforge.core.parent_validation_service.execute_test_command",
+            return_value=mock_result,
+        ):
             result = service._execute_parent_test("pytest", mock_workspace.root)
 
         assert result.passed
@@ -392,7 +346,10 @@ class TestExecuteParentTest:
         mock_result.success = False
         mock_result.duration = 2.0
 
-        with patch("missionforge.core.parent_validation_service.execute_test_command", return_value=mock_result):
+        with patch(
+            "missionforge.core.parent_validation_service.execute_test_command",
+            return_value=mock_result,
+        ):
             result = service._execute_parent_test("pytest", mock_workspace.root)
 
         assert not result.passed

@@ -74,15 +74,15 @@ metrics:
                 "scope_check": {
                     "allowed_paths_satisfied": True,
                     "forbidden_paths_violated": False,
-                    "violations": []
+                    "violations": [],
                 },
                 "test_results": {
                     "command": "pytest",
                     "exit_code": 0,
                     "output": "All tests passed",
                     "passed": True,
-                    "duration": 1.5
-                }
+                    "duration": 1.5,
+                },
             },
             "metrics": [
                 {
@@ -90,9 +90,9 @@ metrics:
                     "baseline_value": 50.0,
                     "target_value": 100.0,
                     "final_value": 100.0,
-                    "status": "PASSED"
+                    "status": "PASSED",
                 }
-            ]
+            ],
         }
 
         validation_path = integration_workspace.validation_path(sub_id)

@@ -90,8 +90,18 @@ def mission_with_baseline(
         "timestamp": "2026-05-01T00:00:00+00:00",
         "status": "committed",
         "metrics": [
-            {"metric_id": "endpoint_exists", "description": "...", "baseline_target": 0.0, "value": 0.0},
-            {"metric_id": "test_coverage", "description": "...", "baseline_target": 50.0, "value": 50.0},
+            {
+                "metric_id": "endpoint_exists",
+                "description": "...",
+                "baseline_target": 0.0,
+                "value": 0.0,
+            },
+            {
+                "metric_id": "test_coverage",
+                "description": "...",
+                "baseline_target": 50.0,
+                "value": 50.0,
+            },
         ],
     }
     with open(baseline_path, "w") as f:
@@ -103,6 +113,7 @@ def _no_git_changes(cwd=None):
     """Helper to patch git calls to return no changes."""
 
     from missionforge.git.operations import GitStatus
+
     return GitStatus(staged=[], unstaged=[], untracked=[], deleted=[], renamed={})
 
 
@@ -115,7 +126,9 @@ class TestValidationCaptureHappyPath:
         mission_id, sub_mission_id = mission_with_sub_mission
         service = ValidationService(integration_workspace)
 
-        with patch("missionforge.core.validation_service.get_status", return_value=_no_git_changes()):
+        with patch(
+            "missionforge.core.validation_service.get_status", return_value=_no_git_changes()
+        ):
             with patch("missionforge.core.validation_service.get_changed_files", return_value=[]):
                 todo_path = service.capture_validation(sub_mission_id)
 
@@ -130,7 +143,9 @@ class TestValidationCaptureHappyPath:
         mission_id, sub_mission_id = mission_with_sub_mission
         service = ValidationService(integration_workspace)
 
-        with patch("missionforge.core.validation_service.get_status", return_value=_no_git_changes()):
+        with patch(
+            "missionforge.core.validation_service.get_status", return_value=_no_git_changes()
+        ):
             with patch("missionforge.core.validation_service.get_changed_files", return_value=[]):
                 todo_path = service.capture_validation(sub_mission_id)
 
@@ -152,7 +167,9 @@ class TestValidationCaptureHappyPath:
         mission_id, sub_mission_id = mission_with_sub_mission
         service = ValidationService(integration_workspace)
 
-        with patch("missionforge.core.validation_service.get_status", return_value=_no_git_changes()):
+        with patch(
+            "missionforge.core.validation_service.get_status", return_value=_no_git_changes()
+        ):
             with patch("missionforge.core.validation_service.get_changed_files", return_value=[]):
                 todo_path = service.capture_validation(sub_mission_id)
 
@@ -171,7 +188,9 @@ class TestValidationCaptureHappyPath:
         mission_id, sub_mission_id = mission_with_baseline
         service = ValidationService(integration_workspace)
 
-        with patch("missionforge.core.validation_service.get_status", return_value=_no_git_changes()):
+        with patch(
+            "missionforge.core.validation_service.get_status", return_value=_no_git_changes()
+        ):
             with patch("missionforge.core.validation_service.get_changed_files", return_value=[]):
                 todo_path = service.capture_validation(sub_mission_id)
 
@@ -190,7 +209,9 @@ class TestValidationCaptureHappyPath:
         mission_id, sub_mission_id = mission_with_sub_mission
         service = ValidationService(integration_workspace)
 
-        with patch("missionforge.core.validation_service.get_status", return_value=_no_git_changes()):
+        with patch(
+            "missionforge.core.validation_service.get_status", return_value=_no_git_changes()
+        ):
             with patch("missionforge.core.validation_service.get_changed_files", return_value=[]):
                 todo_path = service.capture_validation(sub_mission_id)
 
@@ -231,7 +252,9 @@ class TestValidationCaptureErrors:
         validation_path.parent.mkdir(parents=True, exist_ok=True)
         validation_path.write_text("{}")
 
-        with patch("missionforge.core.validation_service.get_status", return_value=_no_git_changes()):
+        with patch(
+            "missionforge.core.validation_service.get_status", return_value=_no_git_changes()
+        ):
             with patch("missionforge.core.validation_service.get_changed_files", return_value=[]):
                 todo_path = service.capture_validation(sub_mission_id, force=True)
 
@@ -246,7 +269,9 @@ class TestValidationCommitHappyPath:
         sub_mission_id: str,
         final_values: dict[str, object],
     ) -> Path:
-        with patch("missionforge.core.validation_service.get_status", return_value=_no_git_changes()):
+        with patch(
+            "missionforge.core.validation_service.get_status", return_value=_no_git_changes()
+        ):
             with patch("missionforge.core.validation_service.get_changed_files", return_value=[]):
                 todo_path = service.capture_validation(sub_mission_id)
 
@@ -271,7 +296,9 @@ class TestValidationCommitHappyPath:
         service = ValidationService(integration_workspace)
 
         self._capture_and_fill(
-            service, integration_workspace, sub_mission_id,
+            service,
+            integration_workspace,
+            sub_mission_id,
             {"endpoint_exists": 1.0, "test_coverage": 85.0},
         )
         out_path = service.commit_validation(sub_mission_id)
@@ -288,7 +315,9 @@ class TestValidationCommitHappyPath:
         service = ValidationService(integration_workspace)
 
         self._capture_and_fill(
-            service, integration_workspace, sub_mission_id,
+            service,
+            integration_workspace,
+            sub_mission_id,
             {"endpoint_exists": 1.0, "test_coverage": 85.0},
         )
         out_path = service.commit_validation(sub_mission_id)
@@ -309,7 +338,9 @@ class TestValidationCommitHappyPath:
 
         # endpoint_exists target is 1.0, provide 0.0 → FAILED
         self._capture_and_fill(
-            service, integration_workspace, sub_mission_id,
+            service,
+            integration_workspace,
+            sub_mission_id,
             {"endpoint_exists": 0.0, "test_coverage": 85.0},
         )
         out_path = service.commit_validation(sub_mission_id)
@@ -331,7 +362,9 @@ class TestValidationCommitHappyPath:
         service = ValidationService(integration_workspace)
 
         self._capture_and_fill(
-            service, integration_workspace, sub_mission_id,
+            service,
+            integration_workspace,
+            sub_mission_id,
             {"endpoint_exists": 1.0, "test_coverage": 85.0},
         )
         out_path = service.commit_validation(sub_mission_id)
@@ -354,7 +387,9 @@ class TestValidationCommitHappyPath:
         service = ValidationService(integration_workspace)
 
         self._capture_and_fill(
-            service, integration_workspace, sub_mission_id,
+            service,
+            integration_workspace,
+            sub_mission_id,
             {"endpoint_exists": 1.0, "test_coverage": 80.0},
         )
         out_path = service.commit_validation(sub_mission_id)
@@ -386,7 +421,9 @@ class TestValidationCommitErrors:
         mission_id, sub_mission_id = mission_with_sub_mission
         service = ValidationService(integration_workspace)
 
-        with patch("missionforge.core.validation_service.get_status", return_value=_no_git_changes()):
+        with patch(
+            "missionforge.core.validation_service.get_status", return_value=_no_git_changes()
+        ):
             with patch("missionforge.core.validation_service.get_changed_files", return_value=[]):
                 service.capture_validation(sub_mission_id)
 
@@ -402,6 +439,7 @@ class TestValidationScopeAndBlocked:
         from pathlib import Path as _Path
 
         from missionforge.git.operations import GitStatus
+
         git_status = GitStatus(staged=files, unstaged=[], untracked=[], deleted=[], renamed={})
         return (
             patch("missionforge.core.validation_service.get_repo_root", return_value=_Path(".")),
@@ -466,7 +504,9 @@ class TestValidationFileLocations:
         mission_id, sub_mission_id = mission_with_sub_mission
         service = ValidationService(integration_workspace)
 
-        with patch("missionforge.core.validation_service.get_status", return_value=_no_git_changes()):
+        with patch(
+            "missionforge.core.validation_service.get_status", return_value=_no_git_changes()
+        ):
             with patch("missionforge.core.validation_service.get_changed_files", return_value=[]):
                 todo_path = service.capture_validation(sub_mission_id)
 

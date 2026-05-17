@@ -62,8 +62,7 @@ def plan_command(
 
     sub_mission_ids = [sm.id for sm in sub_missions]
     console.print(
-        f"[green]OK[/green] Found {len(sub_missions)} sub-missions: "
-        f"{', '.join(sub_mission_ids)}"
+        f"[green]OK[/green] Found {len(sub_missions)} sub-missions: {', '.join(sub_mission_ids)}"
     )
 
     console.print("\n[bold cyan]Step 3:[/bold cyan] Validating dependencies...")
@@ -204,8 +203,7 @@ def _validate_all_dependencies(sub_missions: list[SubMission]) -> list[str]:
         for dep in sub_mission.depends_on:
             if dep not in all_ids:
                 errors.append(
-                    f"Sub-mission '{sub_mission.id}' depends on "
-                    f"non-existent sub-mission '{dep}'"
+                    f"Sub-mission '{sub_mission.id}' depends on non-existent sub-mission '{dep}'"
                 )
 
     return errors
@@ -294,7 +292,7 @@ def _check_all_path_overlaps(sub_missions: list[SubMission]) -> list[PathOverlap
 
         spec_a = pathspec.PathSpec.from_lines("gitignore", sm_a.allowed_paths)
 
-        for sm_b in sub_missions[i + 1:]:
+        for sm_b in sub_missions[i + 1 :]:
             if not sm_b.allowed_paths:
                 continue
 
@@ -394,9 +392,7 @@ def _write_plan_file(
     plan_data["sub_missions"] = plan.sub_missions
     plan_data["execution_order"] = plan.execution_order
     plan_data["dependency_graph"] = plan.dependency_graph
-    plan_data["path_overlaps"] = [
-        overlap.model_dump(mode="json") for overlap in plan.path_overlaps
-    ]
+    plan_data["path_overlaps"] = [overlap.model_dump(mode="json") for overlap in plan.path_overlaps]
     yaml_content = yaml.dump(plan_data, default_flow_style=False, sort_keys=False)
 
     plan_file = mission_path / "plan.yaml"
@@ -408,9 +404,7 @@ def _display_plan_summary(
     parallelism: dict[int, list[str]],
 ) -> None:
     """Display execution plan summary with order and parallelism levels."""
-    order_lines = "\n".join(
-        f"  {i + 1}. {mid}" for i, mid in enumerate(plan.execution_order)
-    )
+    order_lines = "\n".join(f"  {i + 1}. {mid}" for i, mid in enumerate(plan.execution_order))
     level_parts = []
     for lvl, ms in sorted(parallelism.items()):
         if lvl == 0:

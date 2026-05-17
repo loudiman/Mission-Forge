@@ -7,6 +7,7 @@ from rich.console import Console
 
 from ..core.config import MissionForgeConfig
 from ..core.exceptions import MissionForgeError
+
 # Import logging first to suppress harmless hashlib errors
 from ..core.logging import setup_logging
 from ..core.workspace import Workspace

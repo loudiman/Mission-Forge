@@ -2,7 +2,6 @@
 
 import logging
 import sys
-import warnings
 from pathlib import Path
 
 from rich.logging import RichHandler
@@ -11,9 +10,8 @@ from rich.logging import RichHandler
 # These occur when OpenSSL doesn't have blake2 compiled in, but Python's
 # built-in implementation is used as fallback (functionality is not affected)
 logging.getLogger().addFilter(
-    lambda record: not (
-        record.levelno == logging.ERROR
-        and "code for hash blake2" in record.getMessage()
+    lambda record: (
+        not (record.levelno == logging.ERROR and "code for hash blake2" in record.getMessage())
     )
 )
 

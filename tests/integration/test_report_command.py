@@ -27,11 +27,8 @@ def mission_with_validation(tmp_path):
         "goal": "Test mission for report generation",
         "test_command": "pytest",
         "forbidden_paths": ["*.secret"],
-        "aggregate_metrics": {
-            "code_quality": {"target": 90.0},
-            "test_coverage": {"min": 80.0}
-        },
-        "sub_missions": ["MF-001-A", "MF-001-B"]
+        "aggregate_metrics": {"code_quality": {"target": 90.0}, "test_coverage": {"min": 80.0}},
+        "sub_missions": ["MF-001-A", "MF-001-B"],
     }
     mission_file = mission_dir / "mission.yaml"
     mission_file.write_text(yaml.dump(mission_data))
@@ -48,10 +45,8 @@ def mission_with_validation(tmp_path):
         "goal": "Add new feature A",
         "depends_on": [],
         "allowed_paths": ["src/feature_a/**"],
-        "metrics": {
-            "lines_of_code": {"max": 500.0}
-        },
-        "test_command": "pytest tests/test_feature_a.py"
+        "metrics": {"lines_of_code": {"max": 500.0}},
+        "test_command": "pytest tests/test_feature_a.py",
     }
     sub_file_a = sub_missions_dir / "MF-001-A.yaml"
     sub_file_a.write_text(yaml.dump(sub_mission_a))
@@ -65,7 +60,7 @@ def mission_with_validation(tmp_path):
         "depends_on": ["MF-001-A"],
         "allowed_paths": ["src/feature_b/**"],
         "metrics": {},
-        "test_command": "pytest tests/test_feature_b.py"
+        "test_command": "pytest tests/test_feature_b.py",
     }
     sub_file_b = sub_missions_dir / "MF-001-B.yaml"
     sub_file_b.write_text(yaml.dump(sub_mission_b))
@@ -81,13 +76,10 @@ def mission_with_validation(tmp_path):
             "lines_removed": 50,
             "tests_passed": True,
             "test_coverage": 85.5,
-            "custom_metrics": {
-                "code_quality": 92.0,
-                "test_coverage": 85.5
-            }
+            "custom_metrics": {"code_quality": 92.0, "test_coverage": 85.5},
         },
         "passed": True,
-        "errors": []
+        "errors": [],
     }
     validation_file = mission_dir / "validation.json"
     validation_file.write_text(json.dumps(parent_validation))
@@ -103,12 +95,10 @@ def mission_with_validation(tmp_path):
             "lines_removed": 20,
             "tests_passed": True,
             "test_coverage": 90.0,
-            "custom_metrics": {
-                "lines_of_code": 450.0
-            }
+            "custom_metrics": {"lines_of_code": 450.0},
         },
         "passed": True,
-        "errors": []
+        "errors": [],
     }
     sub_validation_file_a = sub_missions_dir / "MF-001-A.validation.json"
     sub_validation_file_a.write_text(json.dumps(sub_validation_a))
@@ -124,10 +114,10 @@ def mission_with_validation(tmp_path):
             "lines_removed": 30,
             "tests_passed": True,
             "test_coverage": 88.0,
-            "custom_metrics": {}
+            "custom_metrics": {},
         },
         "passed": True,
-        "errors": []
+        "errors": [],
     }
     sub_validation_file_b = sub_missions_dir / "MF-001-B.validation.json"
     sub_validation_file_b.write_text(json.dumps(sub_validation_b))
@@ -135,10 +125,7 @@ def mission_with_validation(tmp_path):
     # Create execution plan
     plan_data = {
         "execution_order": ["MF-001-A", "MF-001-B"],
-        "dependency_graph": {
-            "MF-001-A": [],
-            "MF-001-B": ["MF-001-A"]
-        }
+        "dependency_graph": {"MF-001-A": [], "MF-001-B": ["MF-001-A"]},
     }
     plan_file = mission_dir / "plan.yaml"
     plan_file.write_text(yaml.dump(plan_data))
@@ -159,7 +146,9 @@ class TestReportCommand:
         assert "Report generated successfully" in result.stdout
 
         # Check report file was created
-        report_file = mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        report_file = (
+            mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        )
         assert report_file.exists()
 
         # Check report content
@@ -213,7 +202,9 @@ class TestReportCommand:
         result = runner.invoke(app, ["report", "MF-001"])
         assert result.exit_code == 0
 
-        report_file = mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        report_file = (
+            mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        )
         content = report_file.read_text()
 
         # Check all required sections
@@ -227,7 +218,7 @@ class TestReportCommand:
             "Files Changed",
             "Forbidden Path Violations",
             "Next Steps",
-            "Metadata"
+            "Metadata",
         ]
 
         for section in required_sections:
@@ -240,7 +231,9 @@ class TestReportCommand:
         result = runner.invoke(app, ["report", "MF-001"])
         assert result.exit_code == 0
 
-        report_file = mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        report_file = (
+            mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        )
         content = report_file.read_text()
 
         assert "PASSED" in content
@@ -253,7 +246,9 @@ class TestReportCommand:
         result = runner.invoke(app, ["report", "MF-001"])
         assert result.exit_code == 0
 
-        report_file = mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        report_file = (
+            mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        )
         content = report_file.read_text()
 
         # Check sub-mission A details
@@ -273,7 +268,9 @@ class TestReportCommand:
         result = runner.invoke(app, ["report", "MF-001"])
         assert result.exit_code == 0
 
-        report_file = mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        report_file = (
+            mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        )
         content = report_file.read_text()
 
         # Check aggregate metrics
@@ -289,7 +286,9 @@ class TestReportCommand:
         result = runner.invoke(app, ["report", "MF-001"])
         assert result.exit_code == 0
 
-        report_file = mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        report_file = (
+            mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        )
         content = report_file.read_text()
 
         # Check test commands
@@ -301,7 +300,9 @@ class TestReportCommand:
 class TestReportSecurityEdgeCases:
     """Test security-related edge cases for report command."""
 
-    def test_report_rejects_path_traversal_to_system_dirs(self, mission_with_validation, monkeypatch):
+    def test_report_rejects_path_traversal_to_system_dirs(
+        self, mission_with_validation, monkeypatch
+    ):
         """Test that path traversal to system directories is rejected."""
         monkeypatch.chdir(mission_with_validation)
 
@@ -317,7 +318,9 @@ class TestReportSecurityEdgeCases:
         assert result.exit_code == 1
         assert "Output path must be within workspace or home directory" in result.stdout
 
-    def test_report_rejects_absolute_path_outside_workspace(self, mission_with_validation, monkeypatch, tmp_path):
+    def test_report_rejects_absolute_path_outside_workspace(
+        self, mission_with_validation, monkeypatch, tmp_path
+    ):
         """Test that absolute paths outside workspace are rejected."""
         monkeypatch.chdir(mission_with_validation)
 
@@ -336,13 +339,17 @@ class TestReportSecurityEdgeCases:
         monkeypatch.chdir(mission_with_validation)
 
         # This should work - path within workspace
-        result = runner.invoke(app, ["report", "MF-001", "--output", ".missionforge/reports/custom.md"])
+        result = runner.invoke(
+            app, ["report", "MF-001", "--output", ".missionforge/reports/custom.md"]
+        )
         assert result.exit_code == 0
 
         report_file = mission_with_validation / ".missionforge" / "reports" / "custom.md"
         assert report_file.exists()
 
-    def test_report_allows_path_in_home_directory(self, mission_with_validation, monkeypatch, tmp_path):
+    def test_report_allows_path_in_home_directory(
+        self, mission_with_validation, monkeypatch, tmp_path
+    ):
         """Test that paths in home directory are allowed."""
         monkeypatch.chdir(mission_with_validation)
 
@@ -362,15 +369,20 @@ class TestReportTemplateEdgeCases:
         monkeypatch.chdir(mission_with_validation)
 
         # Remove validation results to test graceful handling
-        validation_dir = mission_with_validation / ".missionforge" / "missions" / "MF-001" / "validations"
+        validation_dir = (
+            mission_with_validation / ".missionforge" / "missions" / "MF-001" / "validations"
+        )
         if validation_dir.exists():
             import shutil
+
             shutil.rmtree(validation_dir)
 
         result = runner.invoke(app, ["report", "MF-001"])
         assert result.exit_code == 0
 
-        report_file = mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        report_file = (
+            mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        )
         assert report_file.exists()
 
 
@@ -383,8 +395,12 @@ class TestReportMetricsEdgeCases:
 
         # Modify sub-mission to have zero metrics
         sub_mission_file = (
-            mission_with_validation / ".missionforge" / "missions" / "MF-001" /
-            "sub-missions" / "MF-001-A.yaml"
+            mission_with_validation
+            / ".missionforge"
+            / "missions"
+            / "MF-001"
+            / "sub-missions"
+            / "MF-001-A.yaml"
         )
         sub_mission_data = yaml.safe_load(sub_mission_file.read_text())
         sub_mission_data["metrics"] = {"code_quality": 0.0, "test_coverage": 0.0}
@@ -393,7 +409,9 @@ class TestReportMetricsEdgeCases:
         result = runner.invoke(app, ["report", "MF-001"])
         assert result.exit_code == 0
 
-        report_file = mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        report_file = (
+            mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        )
         content = report_file.read_text()
         assert "0.0" in content
 
@@ -403,8 +421,12 @@ class TestReportMetricsEdgeCases:
 
         # Modify sub-mission B (which has validation) to have large metrics
         sub_mission_file = (
-            mission_with_validation / ".missionforge" / "missions" / "MF-001" /
-            "sub-missions" / "MF-001-B.yaml"
+            mission_with_validation
+            / ".missionforge"
+            / "missions"
+            / "MF-001"
+            / "sub-missions"
+            / "MF-001-B.yaml"
         )
         sub_mission_data = yaml.safe_load(sub_mission_file.read_text())
         sub_mission_data["metrics"] = {"lines_of_code": 1000000, "complexity": 99999}
@@ -415,12 +437,13 @@ class TestReportMetricsEdgeCases:
 
         # Just verify the report was generated successfully
         # The large numbers should be handled without errors
-        report_file = mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        report_file = (
+            mission_with_validation / ".missionforge" / "missions" / "MF-001" / "report.md"
+        )
         assert report_file.exists()
         content = report_file.read_text()
         # Verify report contains metrics section
         assert "Metrics" in content
-
 
 
 # Made with Bob
