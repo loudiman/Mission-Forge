@@ -1,6 +1,5 @@
 """Report generation commands."""
 
-import os
 from pathlib import Path
 
 import typer
@@ -16,23 +15,23 @@ console = Console()
 
 def _validate_output_path(output_path: Path, workspace_root: Path) -> None:
     """Validate output path for security issues.
-    
+
     Args:
         output_path: The requested output path.
         workspace_root: The workspace root directory.
-        
+
     Raises:
         typer.Exit: If path validation fails.
     """
     try:
         # Resolve to absolute path
         resolved_path = output_path.resolve()
-        
+
         # Check for path traversal attempts
         # Allow paths within workspace or in user's home directory
         workspace_resolved = workspace_root.resolve()
         home_dir = Path.home().resolve()
-        
+
         # Check if path is within allowed directories
         try:
             # Try to get relative path from workspace
@@ -40,14 +39,14 @@ def _validate_output_path(output_path: Path, workspace_root: Path) -> None:
             return  # Path is within workspace - OK
         except ValueError:
             pass
-        
+
         try:
             # Try to get relative path from home
             resolved_path.relative_to(home_dir)
             return  # Path is within home directory - OK
         except ValueError:
             pass
-        
+
         # Path is outside allowed directories
         console.print(
             "[red]Error:[/red] Output path must be within workspace or home directory"
@@ -56,7 +55,7 @@ def _validate_output_path(output_path: Path, workspace_root: Path) -> None:
         console.print(f"Home: {home_dir}")
         console.print(f"Requested: {resolved_path}")
         raise typer.Exit(1)
-        
+
     except (OSError, RuntimeError) as e:
         console.print(f"[red]Error:[/red] Invalid output path: {e}")
         raise typer.Exit(1) from e

@@ -1,14 +1,13 @@
 """Mission report generation with Markdown templates."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import yaml
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from ..git.operations import get_changed_files_detailed, get_commit_hash, get_diff_stats
-from ..models.schemas import ParentMission, SubMission, Validation
+from ..models.schemas import ParentMission
 from ..schemas.validators import SchemaValidator
 from .exceptions import MissionForgeError
 
@@ -50,7 +49,7 @@ class ReportGenerator:
         # Determine output path
         if output_path is None:
             output_path = mission_path / "report.md"
-        
+
         # Ensure parent directory exists
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -132,7 +131,7 @@ class ReportGenerator:
             "forbidden_violations": forbidden_violations,
             "next_mission": next_mission,
             "git_info": git_info,
-            "generation_timestamp": datetime.now(timezone.utc).isoformat(),
+            "generation_timestamp": datetime.now(UTC).isoformat(),
             "cli_version": "0.1.0",
         }
 

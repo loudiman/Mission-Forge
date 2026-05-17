@@ -348,7 +348,7 @@ class TestReportSecurityEdgeCases:
 
         # Create a temp file in a subdirectory of tmp_path (which acts as home for testing)
         home_report = tmp_path / "reports" / "home_report.md"
-        
+
         result = runner.invoke(app, ["report", "MF-001", "--output", str(home_report)])
         # This might fail or succeed depending on path resolution, but shouldn't crash
         assert result.exit_code in [0, 1]
@@ -383,7 +383,7 @@ class TestReportMetricsEdgeCases:
 
         # Modify sub-mission to have zero metrics
         sub_mission_file = (
-            mission_with_validation / ".missionforge" / "missions" / "MF-001" / 
+            mission_with_validation / ".missionforge" / "missions" / "MF-001" /
             "sub-missions" / "MF-001-A.yaml"
         )
         sub_mission_data = yaml.safe_load(sub_mission_file.read_text())
