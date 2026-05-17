@@ -9,7 +9,7 @@ from ..core.config import MissionForgeConfig
 from ..core.exceptions import MissionForgeError
 from ..core.logging import setup_logging
 from ..core.workspace import Workspace
-from .commands import baseline, decompose, mission, validate, workspace
+from .commands import baseline, decompose, mission, plan, validate, workspace
 from .commands.workspace import init_workspace
 
 app = typer.Typer(
@@ -58,6 +58,7 @@ app.add_typer(validate.app, name="validate")
 app.command("mission", context_settings={"allow_extra_args": True})(mission.mission_command)
 app.command("decompose")(decompose.decompose_command)
 app.command("validate-submission")(decompose.validate_submission_command)
+app.command("plan")(plan.plan_command)
 
 
 @app.command("init")
