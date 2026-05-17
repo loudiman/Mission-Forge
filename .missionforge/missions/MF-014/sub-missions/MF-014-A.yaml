@@ -11,10 +11,8 @@ depends_on: []
 
 # Paths this sub-mission can modify
 allowed_paths:
-  - "src/missionforge/backend/__init__.py"
-  - "src/missionforge/backend/config.py"
-  - "src/missionforge/backend/repository.py"
-  - "requirements-backend.txt"
+  - "src/missionforge/backend/**"
+  - "tests/unit/backend/**"
   - "pyproject.toml"
 
 # Metrics for this sub-mission
