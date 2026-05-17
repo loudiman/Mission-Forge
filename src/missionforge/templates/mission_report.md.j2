@@ -1,0 +1,265 @@
+# Mission {{ mission.id }}: {{ mission.goal }}
+
+**Status:** {% if overall_status == "PASSED" %}✓ PASSED{% elif overall_status == "FAILED" %}✗ FAILED{% else %}⚠ INCOMPLETE{% endif %}
+
+**Generated:** {{ generation_timestamp }}  
+**CLI Version:** {{ cli_version }}  
+**Git Commit:** {{ git_info.commit_hash }}
+
+---
+
+## Mission Goal
+
+{{ mission.goal }}
+
+---
+
+## Decomposition Summary
+
+{% if sub_missions %}
+### Dependency Diagram
+
+```
+{{ dependency_diagram }}
+```
+
+### Sub-Missions Overview
+
+Total sub-missions: {{ sub_missions|length }}
+
+{% else %}
+No sub-missions defined for this mission.
+{% endif %}
+
+---
+
+## Sub-Mission Results
+
+{% if sub_missions %}
+| ID | Title | Status | Tests | Metrics |
+|----|-------|--------|-------|---------|
+{% for sub in sub_missions %}
+{%- set validation = validation_results.get(sub.id) -%}
+| {{ sub.id }} | {{ sub.title }} | {% if validation %}{% if validation.passed %}✓ PASSED{% else %}✗ FAILED{% endif %}{% else %}⚠ NO DATA{% endif %} | {% if validation %}{% if validation.metrics.tests_passed %}✓{% else %}✗{% endif %}{% else %}-{% endif %} | {% if validation %}{{ validation.metrics.custom_metrics|length }}{% else %}0{% endif %} |
+{% endfor %}
+
+### Detailed Sub-Mission Results
+
+{% for sub in sub_missions %}
+#### {{ sub.id }}: {{ sub.title }}
+
+**Goal:** {{ sub.goal }}
+
+{% if sub.depends_on %}
+**Dependencies:** {{ sub.depends_on|join(", ") }}
+{% else %}
+**Dependencies:** None
+{% endif %}
+
+{% set validation = validation_results.get(sub.id) %}
+{% if validation %}
+**Status:** {% if validation.passed %}✓ PASSED{% else %}✗ FAILED{% endif %}
+
+**Metrics:**
+- Files Changed: {{ validation.metrics.files_changed }}
+- Lines Added: {{ validation.metrics.lines_added }}
+- Lines Removed: {{ validation.metrics.lines_removed }}
+- Tests Passed: {% if validation.metrics.tests_passed %}✓ Yes{% else %}✗ No{% endif %}
+{% if validation.metrics.test_coverage %}
+- Test Coverage: {{ "%.1f"|format(validation.metrics.test_coverage) }}%
+{% endif %}
+
+{% if validation.metrics.custom_metrics %}
+**Custom Metrics:**
+{% for metric_name, metric_value in validation.metrics.custom_metrics.items() %}
+- {{ metric_name }}: {{ metric_value }}
+{% endfor %}
+{% endif %}
+
+{% if validation.errors %}
+**Errors:**
+{% for error in validation.errors %}
+- {{ error }}
+{% endfor %}
+{% endif %}
+
+{% else %}
+**Status:** ⚠ No validation data available
+
+{% endif %}
+
+---
+
+{% endfor %}
+{% else %}
+No sub-missions to report.
+{% endif %}
+
+---
+
+## Aggregate Metrics
+
+{% if metrics_comparison %}
+| Metric | Target | Min | Max | Final | Status |
+|--------|--------|-----|-----|-------|--------|
+{% for metric in metrics_comparison %}
+| {{ metric.name }} | {{ metric.target if metric.target is not none else "-" }} | {{ metric.min if metric.min is not none else "-" }} | {{ metric.max if metric.max is not none else "-" }} | {{ metric.final if metric.final is not none else "-" }} | {% if metric.status == "PASSED" %}✓ PASSED{% elif metric.status == "FAILED" %}✗ FAILED{% else %}⚠ UNKNOWN{% endif %} |
+{% endfor %}
+{% else %}
+No aggregate metrics defined for this mission.
+{% endif %}
+
+---
+
+## Test Results
+
+### Parent Mission Tests
+
+{% set parent_validation = validation_results.get(mission.id) %}
+{% if parent_validation %}
+**Status:** {% if parent_validation.passed %}✓ PASSED{% else %}✗ FAILED{% endif %}
+
+**Test Command:** `{{ mission.test_command }}`
+
+**Metrics:**
+- Files Changed: {{ parent_validation.metrics.files_changed }}
+- Lines Added: {{ parent_validation.metrics.lines_added }}
+- Lines Removed: {{ parent_validation.metrics.lines_removed }}
+- Tests Passed: {% if parent_validation.metrics.tests_passed %}✓ Yes{% else %}✗ No{% endif %}
+{% if parent_validation.metrics.test_coverage %}
+- Test Coverage: {{ "%.1f"|format(parent_validation.metrics.test_coverage) }}%
+{% endif %}
+
+{% if parent_validation.errors %}
+**Errors:**
+{% for error in parent_validation.errors %}
+- {{ error }}
+{% endfor %}
+{% endif %}
+
+{% else %}
+**Status:** ⚠ No validation data available
+
+Run validation with: `missionforge validate {{ mission.id }}`
+{% endif %}
+
+### Sub-Mission Test Summary
+
+{% if sub_missions %}
+| Sub-Mission | Test Command | Status |
+|-------------|--------------|--------|
+{% for sub in sub_missions %}
+{%- set validation = validation_results.get(sub.id) -%}
+| {{ sub.id }} | {% if sub.test_command %}`{{ sub.test_command }}`{% else %}-{% endif %} | {% if validation %}{% if validation.metrics.tests_passed %}✓ PASSED{% else %}✗ FAILED{% endif %}{% else %}⚠ NO DATA{% endif %} |
+{% endfor %}
+{% else %}
+No sub-missions to report.
+{% endif %}
+
+---
+
+## Files Changed
+
+**Total Files:** {{ files_changed.total }}
+
+**Breakdown:**
+- Added: {{ files_changed.added }}
+- Modified: {{ files_changed.modified }}
+- Deleted: {{ files_changed.deleted }}
+- Renamed: {{ files_changed.renamed }}
+
+**Git Statistics:**
+- Insertions: +{{ git_info.insertions }}
+- Deletions: -{{ git_info.deletions }}
+
+{% if files_changed.files %}
+### Changed Files List
+
+{% for file in files_changed.files %}
+- `{{ file }}`
+{% endfor %}
+{% endif %}
+
+---
+
+## Forbidden Path Violations
+
+{% if forbidden_violations %}
+⚠ **WARNING:** The following forbidden path violations were detected:
+
+{% for violation in forbidden_violations %}
+- {{ violation }}
+{% endfor %}
+
+**Action Required:** Review and fix these violations before merging.
+
+{% else %}
+✓ No forbidden path violations detected.
+{% endif %}
+
+---
+
+## Next Steps
+
+{% if next_mission %}
+### Suggested Next Mission
+
+**{{ next_mission }}**
+
+Continue the mission chain by working on the next mission.
+
+{% else %}
+No next mission suggested. This may be the final mission in the chain.
+{% endif %}
+
+### Recommendations
+
+{% if overall_status == "PASSED" %}
+✓ All checks passed! This mission is ready for PR submission.
+
+**Before submitting PR:**
+1. Review all changed files
+2. Ensure all tests pass locally
+3. Update documentation if needed
+4. Add this report to your PR description
+
+{% elif overall_status == "FAILED" %}
+✗ Some checks failed. Please address the following:
+
+{% for sub_id, validation in validation_results.items() %}
+{% if not validation.passed %}
+**{{ sub_id }}:**
+{% for error in validation.errors %}
+- {{ error }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+**Action Required:**
+1. Fix the failing tests
+2. Address validation errors
+3. Re-run validation: `missionforge validate {{ mission.id }}`
+4. Regenerate report: `missionforge report {{ mission.id }}`
+
+{% else %}
+⚠ Mission validation incomplete.
+
+**Action Required:**
+1. Complete all sub-missions
+2. Run validation: `missionforge validate {{ mission.id }}`
+3. Regenerate report: `missionforge report {{ mission.id }}`
+
+{% endif %}
+
+---
+
+## Metadata
+
+**Mission ID:** {{ mission.id }}  
+**Report Generated:** {{ generation_timestamp }}  
+**CLI Version:** {{ cli_version }}  
+**Git Commit:** {{ git_info.full_commit_hash }}
+
+---
+
+*This report was automatically generated by MissionForge CLI.*
