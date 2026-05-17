@@ -1,7 +1,5 @@
 """Pydantic models for mission schemas."""
 
-from pathlib import Path
-from typing import Any, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -9,9 +7,9 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 class MetricDefinition(BaseModel):
     """Definition of a metric with constraints."""
 
-    min: Optional[float] = Field(None, description="Minimum allowed value")
-    max: Optional[float] = Field(None, description="Maximum allowed value")
-    target: Optional[float] = Field(None, description="Target value")
+    min: float | None = Field(None, description="Minimum allowed value")
+    max: float | None = Field(None, description="Maximum allowed value")
+    target: float | None = Field(None, description="Target value")
 
     @model_validator(mode="after")
     def validate_constraints(self) -> "MetricDefinition":
@@ -34,7 +32,7 @@ class ParentMission(BaseModel):
     aggregate_metrics: dict[str, MetricDefinition] = Field(
         default_factory=dict, description="Aggregate metrics across all sub-missions"
     )
-    test_command: Optional[str] = Field(
+    test_command: str | None = Field(
         None, description="Command to run tests for mission validation"
     )
     sub_missions: list[str] = Field(
@@ -73,7 +71,7 @@ class ParentMission(BaseModel):
             try:
                 pathspec.PathSpec.from_lines("gitwildmatch", [pattern])
             except Exception as e:
-                raise ValueError(f"Invalid path pattern '{pattern}': {e}")
+                raise ValueError(f"Invalid path pattern '{pattern}': {e}") from e
         return v
 
 
@@ -93,7 +91,7 @@ class SubMission(BaseModel):
     metrics: dict[str, MetricDefinition] = Field(
         default_factory=dict, description="Metrics for this sub-mission"
     )
-    test_command: Optional[str] = Field(
+    test_command: str | None = Field(
         None, description="Command to run tests for this sub-mission"
     )
 
@@ -151,7 +149,7 @@ class SubMission(BaseModel):
             try:
                 pathspec.PathSpec.from_lines("gitwildmatch", [pattern])
             except Exception as e:
-                raise ValueError(f"Invalid path pattern '{pattern}': {e}")
+                raise ValueError(f"Invalid path pattern '{pattern}': {e}") from e
         return v
 
     @model_validator(mode="after")
@@ -177,7 +175,7 @@ class BaselineMetrics(BaseModel):
     files_changed: int = Field(..., description="Number of files changed")
     lines_added: int = Field(..., description="Number of lines added")
     lines_removed: int = Field(..., description="Number of lines removed")
-    test_coverage: Optional[float] = Field(None, description="Test coverage percentage")
+    test_coverage: float | None = Field(None, description="Test coverage percentage")
     custom_metrics: dict[str, float] = Field(
         default_factory=dict, description="Custom metrics defined by mission"
     )
@@ -192,7 +190,7 @@ class BaselineMetrics(BaseModel):
 
     @field_validator("test_coverage")
     @classmethod
-    def validate_coverage(cls, v: Optional[float]) -> Optional[float]:
+    def validate_coverage(cls, v: float | None) -> float | None:
         """Ensure coverage is between 0 and 100."""
         if v is not None and (v < 0 or v > 100):
             raise ValueError("Test coverage must be between 0 and 100")
@@ -224,7 +222,7 @@ class ValidationMetrics(BaseModel):
     files_changed: int = Field(..., description="Number of files changed")
     lines_added: int = Field(..., description="Number of lines added")
     lines_removed: int = Field(..., description="Number of lines removed")
-    test_coverage: Optional[float] = Field(None, description="Test coverage percentage")
+    test_coverage: float | None = Field(None, description="Test coverage percentage")
     tests_passed: bool = Field(..., description="Whether all tests passed")
     custom_metrics: dict[str, float] = Field(
         default_factory=dict, description="Custom metrics defined by mission"
@@ -240,7 +238,7 @@ class ValidationMetrics(BaseModel):
 
     @field_validator("test_coverage")
     @classmethod
-    def validate_coverage(cls, v: Optional[float]) -> Optional[float]:
+    def validate_coverage(cls, v: float | None) -> float | None:
         """Ensure coverage is between 0 and 100."""
         if v is not None and (v < 0 or v > 100):
             raise ValueError("Test coverage must be between 0 and 100")

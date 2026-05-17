@@ -2,7 +2,7 @@
 
 import re
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
 from ...models.schemas import ParentMission, SubMission
 from ...schemas.validators import SchemaValidator
@@ -84,7 +84,7 @@ def load_and_validate_sub_mission(sub_mission_file: Path) -> SubMission:
     return SchemaValidator.validate_sub_mission_file(sub_mission_file)
 
 
-def validate_mission_structure(mission_path: Path) -> dict:
+def validate_mission_structure(mission_path: Path) -> dict[str, Any]:
     """Validate complete mission directory structure.
 
     Args:

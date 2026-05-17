@@ -1,12 +1,10 @@
 """Custom exception hierarchy for MissionForge."""
 
-from typing import Optional
-
 
 class MissionForgeError(Exception):
     """Base exception for all MissionForge errors."""
 
-    def __init__(self, message: str, suggestion: Optional[str] = None):
+    def __init__(self, message: str, suggestion: str | None = None):
         self.message = message
         self.suggestion = suggestion
         super().__init__(message)
@@ -67,5 +65,6 @@ class PluginError(MissionForgeError):
     """Raised when plugin operation fails."""
 
     pass
+
 
 # Made with Bob

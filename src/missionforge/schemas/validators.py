@@ -1,10 +1,12 @@
 """Schema validators for mission files."""
 
+# ruff: noqa: B904
+
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 from pydantic import ValidationError
 
 from ..core.exceptions import ValidationError as MFValidationError
@@ -299,7 +301,7 @@ class SchemaValidator:
             raise MFValidationError(
                 f"Sub-mission '{sub_mission.id}' has paths that conflict with "
                 f"forbidden paths: {', '.join(conflicts)}",
-                f"Remove these paths from allowed_paths or adjust forbidden_paths in parent mission",
+                "Remove these paths from allowed_paths or adjust forbidden_paths in parent mission",
             )
 
     @staticmethod
@@ -333,7 +335,7 @@ class SchemaValidator:
         Raises:
             MFValidationError: If critical validation fails.
         """
-        results = {
+        results: dict[str, Any] = {
             "mission_file": False,
             "plan_file": False,
             "sub_missions": [],

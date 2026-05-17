@@ -1,7 +1,6 @@
 """Tests for schema validators."""
 
 import json
-from pathlib import Path
 
 import pytest
 import yaml
@@ -9,13 +8,10 @@ import yaml
 from missionforge.core.exceptions import ValidationError as MFValidationError
 from missionforge.models.schemas import (
     Baseline,
-    BaselineMetrics,
     ExecutionPlan,
-    MetricDefinition,
     ParentMission,
     SubMission,
     Validation,
-    ValidationMetrics,
 )
 from missionforge.schemas.validators import SchemaValidator
 

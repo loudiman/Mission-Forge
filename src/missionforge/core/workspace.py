@@ -1,7 +1,6 @@
 """Workspace path resolution and management."""
 
 from pathlib import Path
-from typing import Optional
 
 from .exceptions import WorkspaceNotFoundError
 
@@ -12,7 +11,7 @@ class Workspace:
     WORKSPACE_DIR = ".missionforge"
     MISSIONS_DIR = "missions"
 
-    def __init__(self, start_path: Optional[Path] = None):
+    def __init__(self, start_path: Path | None = None):
         """Initialize workspace from start path.
 
         Args:
@@ -96,5 +95,6 @@ class Workspace:
             if mission_dir.is_dir() and (mission_dir / "mission.yaml").exists():
                 missions.append(mission_dir.name)
         return sorted(missions)
+
 
 # Made with Bob

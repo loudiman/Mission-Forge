@@ -1,7 +1,6 @@
 """Main CLI application."""
 
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -22,8 +21,8 @@ app = typer.Typer(
 console = Console()
 
 # Global state
-_workspace: Optional[Workspace] = None
-_config: Optional[MissionForgeConfig] = None
+_workspace: Workspace | None = None
+_config: MissionForgeConfig | None = None
 
 
 def get_workspace() -> Workspace:
@@ -59,7 +58,7 @@ app.add_typer(workspace.app, name="workspace")
 def main(
     ctx: typer.Context,
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
-    log_file: Optional[Path] = typer.Option(None, "--log-file", help="Log to file"),
+    log_file: Path | None = typer.Option(None, "--log-file", help="Log to file"),  # noqa: B008
 ) -> None:
     """MissionForge CLI - AI-assisted mission management."""
 
@@ -84,15 +83,15 @@ def cli_main() -> None:
         app()
     except MissionForgeError as e:
         console.print(e.format_error(), style="bold red")
-        raise typer.Exit(1)
-    except KeyboardInterrupt:
+        raise typer.Exit(1) from e
+    except KeyboardInterrupt as e:
         console.print("\n[yellow]Operation cancelled by user[/yellow]")
-        raise typer.Exit(130)
+        raise typer.Exit(130) from e
     except Exception as e:
         console.print(f"[bold red]Unexpected error:[/bold red] {e}")
         if "--verbose" in str(e) or "-v" in str(e):
             raise
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 if __name__ == "__main__":

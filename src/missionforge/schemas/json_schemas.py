@@ -144,7 +144,7 @@ def validate_json_against_schema(data: dict[str, Any], schema: dict[str, Any]) -
     Raises:
         jsonschema.ValidationError: If validation fails.
     """
-    import jsonschema
+    import jsonschema  # type: ignore[import-untyped]
 
     jsonschema.validate(instance=data, schema=schema)
 

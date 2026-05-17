@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from missionforge.core.config import MissionForgeConfig
 
@@ -134,7 +135,7 @@ def test_config_validation():
     assert config.test_retry_count == 3
 
     # Invalid types should raise validation error
-    with pytest.raises(Exception):  # Pydantic ValidationError
+    with pytest.raises(ValidationError):
         MissionForgeConfig(test_timeout="invalid")
 
 # Made with Bob
