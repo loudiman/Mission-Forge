@@ -78,6 +78,8 @@ Icon
 *~
 
 .code-review-graph
+.worktrees/
+
 # Local-only directories
 .bob/
 .missionforge/
