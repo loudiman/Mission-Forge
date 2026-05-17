@@ -69,7 +69,7 @@ class ParentMission(BaseModel):
 
         for pattern in v:
             try:
-                pathspec.PathSpec.from_lines("gitwildmatch", [pattern])
+                pathspec.PathSpec.from_lines("gitignore", [pattern])
             except Exception as e:
                 raise ValueError(f"Invalid path pattern '{pattern}': {e}") from e
         return v
@@ -147,7 +147,7 @@ class SubMission(BaseModel):
 
         for pattern in v:
             try:
-                pathspec.PathSpec.from_lines("gitwildmatch", [pattern])
+                pathspec.PathSpec.from_lines("gitignore", [pattern])
             except Exception as e:
                 raise ValueError(f"Invalid path pattern '{pattern}': {e}") from e
         return v
