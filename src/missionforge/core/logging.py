@@ -3,13 +3,12 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 from rich.logging import RichHandler
 
 
 def setup_logging(
-    level: str = "INFO", log_file: Optional[Path] = None, rich_output: bool = True
+    level: str = "INFO", log_file: Path | None = None, rich_output: bool = True
 ) -> logging.Logger:
     """Configure logging with Rich handler.
 
@@ -29,7 +28,7 @@ def setup_logging(
 
     # Console handler with Rich
     if rich_output:
-        console_handler = RichHandler(
+        console_handler: logging.Handler = RichHandler(
             rich_tracebacks=True,
             markup=True,
             show_time=False,
@@ -48,9 +47,7 @@ def setup_logging(
         log_file.parent.mkdir(parents=True, exist_ok=True)
         file_handler = logging.FileHandler(log_file)
         file_handler.setLevel("DEBUG")  # Always debug in file
-        file_formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         file_handler.setFormatter(file_formatter)
         logger.addHandler(file_handler)
 
@@ -67,5 +64,6 @@ def get_logger(name: str = "missionforge") -> logging.Logger:
         Logger instance.
     """
     return logging.getLogger(name)
+
 
 # Made with Bob

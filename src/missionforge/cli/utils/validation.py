@@ -48,4 +48,5 @@ def extract_parent_mission_id(sub_mission_id: str) -> str:
     parts = sub_mission_id.rsplit("-", 1)
     return parts[0] if len(parts) > 1 else sub_mission_id
 
+
 # Made with Bob

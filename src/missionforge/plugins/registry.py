@@ -3,7 +3,6 @@
 import importlib.util
 import inspect
 from pathlib import Path
-from typing import Type
 
 from ..core.exceptions import PluginError
 from ..core.logging import get_logger
@@ -76,7 +75,7 @@ class PluginRegistry:
                         logger.error(f"Failed to instantiate plugin {name}: {e}")
 
         except Exception as e:
-            raise PluginError(f"Failed to load plugin from {file_path}", str(e))
+            raise PluginError(f"Failed to load plugin from {file_path}", str(e)) from e
 
     def get(self, name: str) -> Plugin | None:
         """Get plugin by name.
@@ -89,7 +88,7 @@ class PluginRegistry:
         """
         return self._plugins.get(name)
 
-    def list_plugins(self, plugin_type: Type[Plugin] | None = None) -> list[Plugin]:
+    def list_plugins(self, plugin_type: type[Plugin] | None = None) -> list[Plugin]:
         """List all plugins or plugins of specific type.
 
         Args:
@@ -137,5 +136,6 @@ class PluginRegistry:
         """Cleanup all registered plugins."""
         for name in list(self._plugins.keys()):
             self.unregister(name)
+
 
 # Made with Bob

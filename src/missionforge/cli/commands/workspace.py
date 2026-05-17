@@ -52,7 +52,7 @@ def init_workspace(
     (mission_path / "report.md").touch()
 
     console.print(f"[green]✓[/green] Initialized mission {mission_id}")
-    console.print(f"\n[bold]Next steps:[/bold]")
+    console.print("\n[bold]Next steps:[/bold]")
     console.print(f"1. Edit {mission_path / 'mission.yaml'}")
     console.print(f"2. Run: missionforge mission validate {mission_id}")
 
@@ -63,10 +63,10 @@ def workspace_status() -> None:
 
     try:
         workspace = Workspace()
-    except Exception:
+    except Exception as e:
         console.print("[yellow]No workspace initialized[/yellow]")
         console.print("Run: missionforge workspace init <mission-id>")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
     if not workspace.exists():
         console.print("[yellow]No workspace initialized[/yellow]")
@@ -143,5 +143,6 @@ execution_order: []
 dependency_graph: {}
 """
     path.write_text(template)
+
 
 # Made with Bob

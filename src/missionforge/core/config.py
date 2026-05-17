@@ -1,9 +1,8 @@
 """Configuration management for MissionForge."""
 
 from pathlib import Path
-from typing import Optional
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field
 
 
@@ -16,7 +15,7 @@ class MissionForgeConfig(BaseModel):
 
     # Logging
     log_level: str = Field(default="INFO", description="Logging level")
-    log_file: Optional[Path] = Field(default=None, description="Log file path")
+    log_file: Path | None = Field(default=None, description="Log file path")
 
     # Git operations
     git_diff_context: int = Field(default=3, description="Lines of context in diffs")
@@ -25,12 +24,10 @@ class MissionForgeConfig(BaseModel):
     plugin_dirs: list[Path] = Field(
         default_factory=list, description="Additional plugin directories"
     )
-    disabled_plugins: list[str] = Field(
-        default_factory=list, description="Disabled plugin names"
-    )
+    disabled_plugins: list[str] = Field(default_factory=list, description="Disabled plugin names")
 
     @classmethod
-    def load(cls, config_path: Optional[Path] = None) -> "MissionForgeConfig":
+    def load(cls, config_path: Path | None = None) -> "MissionForgeConfig":
         """Load config from file or use defaults.
 
         Args:
@@ -63,5 +60,6 @@ class MissionForgeConfig(BaseModel):
             Path to ~/.missionforge.config.yaml
         """
         return Path.home() / ".missionforge.config.yaml"
+
 
 # Made with Bob
