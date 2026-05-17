@@ -79,6 +79,7 @@ Icon
 
 .code-review-graph
 .worktrees/
+docs/superpowers/
 
 # Local-only directories
 .bob/

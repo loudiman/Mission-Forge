@@ -149,6 +149,17 @@ class TestValidateParentMissionFile:
             SchemaValidator.validate_parent_mission_file(mission_file)
         assert "validation failed" in str(exc_info.value).lower()
 
+    def test_invalid_glob_pattern(self, tmp_path, valid_parent_mission_data):
+        """Test error with malformed glob pattern."""
+        valid_parent_mission_data["forbidden_paths"] = ["src/[invalid"]
+        mission_file = tmp_path / "mission.yaml"
+        with open(mission_file, "w") as f:
+            yaml.dump(valid_parent_mission_data, f)
+
+        with pytest.raises(MFValidationError) as exc_info:
+            SchemaValidator.validate_parent_mission_file(mission_file)
+        assert "invalid path pattern" in str(exc_info.value).lower()
+
     def test_missing_required_field(self, tmp_path, valid_parent_mission_data):
         """Test error with missing required field."""
         del valid_parent_mission_data["goal"]
