@@ -1,0 +1,52 @@
+id: MF-014-D
+parent: MF-014
+title: "Comprehensive Testing and Integration Validation"
+goal: |
+  Create comprehensive unit and integration tests for all backend components.
+  Ensure all endpoints work correctly, error handling is robust, and the backend
+  can run standalone for testing. This validates the entire backend implementation.
+
+# Depends on all other sub-missions being complete
+depends_on:
+  - MF-014-A
+  - MF-014-B
+  - MF-014-C
+
+# Paths this sub-mission can modify
+allowed_paths:
+  - "tests/unit/backend/**"
+  - "tests/integration/test_backend_api.py"
+  - "tests/fixtures/backend/**"
+  - "tests/conftest.py"
+  - ".github/workflows/backend-ci.yml"
+
+# Metrics for this sub-mission
+metrics:
+  test_coverage:
+    min: 90.0
+    target: 95.0
+    description: "Test suite must be comprehensive"
+  lines_added:
+    target: 600
+    max: 800
+    description: "Comprehensive test coverage"
+  files_changed:
+    target: 12
+    max: 15
+    description: "Test files and fixtures"
+
+# Test command for this sub-mission
+test_command: "pytest tests/unit/backend/ tests/integration/test_backend_api.py -v --cov=src/missionforge/backend --cov-report=term-missing"
+
+# Tasks covered by this sub-mission
+tasks:
+  - "Add unit tests for all components"
+  - "Unit tests cover all endpoints"
+  - "Backend starts successfully and serves API"
+  - "All endpoints return correct data from .missionforge/"
+  - "Error handling works for missing missions"
+  - "CORS allows frontend to connect"
+  - "Backend can run standalone for testing"
+  - "Add CI workflow for backend tests"
+
+# Made with Bob

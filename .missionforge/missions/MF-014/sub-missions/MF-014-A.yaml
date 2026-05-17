@@ -24,9 +24,11 @@ metrics:
     target: 90.0
     description: "Core infrastructure must be well-tested"
   lines_added:
+    target: 300
     max: 400
     description: "Keep setup focused and minimal"
   files_changed:
+    target: 6
     max: 8
     description: "Limited to core setup files"
 

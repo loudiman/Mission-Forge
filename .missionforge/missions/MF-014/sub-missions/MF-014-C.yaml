@@ -30,9 +30,11 @@ metrics:
     target: 90.0
     description: "Caching logic must be well-tested"
   lines_added:
+    target: 300
     max: 400
     description: "Keep middleware and caching focused"
   files_changed:
+    target: 7
     max: 10
     description: "Limited to middleware and docs"
 

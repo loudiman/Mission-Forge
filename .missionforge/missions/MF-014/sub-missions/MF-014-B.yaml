@@ -27,9 +27,11 @@ metrics:
     target: 95.0
     description: "API endpoints must be thoroughly tested"
   lines_added:
+    target: 450
     max: 600
     description: "Keep endpoint implementation focused"
   files_changed:
+    target: 7
     max: 10
     description: "Limited to API-related files"
 

@@ -18,7 +18,26 @@ forbidden_paths:
   - "src/missionforge/core/**"
   - "src/missionforge/cli/**"
   - "src/missionforge/schemas/**"
-  - "tests/**"
+  - "tests/unit/test_baseline_*.py"
+  - "tests/unit/test_config.py"
+  - "tests/unit/test_mission_*.py"
+  - "tests/unit/test_next_*.py"
+  - "tests/unit/test_parent_*.py"
+  - "tests/unit/models/**"
+  - "tests/unit/schemas/**"
+  - "tests/integration/test_baseline_*.py"
+  - "tests/integration/test_cli_*.py"
+  - "tests/integration/test_decompose_*.py"
+  - "tests/integration/test_init_*.py"
+  - "tests/integration/test_next_*.py"
+  - "tests/integration/test_parent_*.py"
+  - "tests/integration/test_plan_*.py"
+  - "tests/integration/test_report_*.py"
+  - "tests/integration/test_validate_*.py"
+  - "tests/integration/test_validation_*.py"
+  - "tests/manual/**"
+  - "tests/fixtures/baseline/**"
+  - "tests/test_*.py"
   - ".missionforge/**"
 
 # Optional: Paths that sub-missions CAN modify
@@ -54,9 +73,8 @@ test_command: "pytest tests/integration/test_backend_api.py tests/unit/backend/ 
 
 # Sub-missions (populated by 'missionforge decompose')
 # Each sub-mission represents a discrete, reviewable unit of work
-sub_missions: []
-
-# Optional: Additional metadata
-# owner: "team-name"
-# priority: "high"
-# estimated_hours: 8
+sub_missions:
+  - MF-014-A
+  - MF-014-B
+  - MF-014-C
+  - MF-014-D
