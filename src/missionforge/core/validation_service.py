@@ -19,6 +19,7 @@ from ..schemas.validators import SchemaValidator
 from ..testing.executor import execute_test_command
 from ..utils.path_matching import validate_paths_against_scope
 from .exceptions import (
+    GitOperationError,
     ValidationAlreadyExistsError,
     ValidationIncompleteError,
     ValidationNotCapturedError,
@@ -43,8 +44,11 @@ class ValidationService:
             Path to created validation.todo.json.
         """
         validation_path = self.workspace.validation_path(sub_mission_id)
-        if validation_path.exists() and not force:
-            raise ValidationAlreadyExistsError(sub_mission_id, str(validation_path))
+        if validation_path.exists():
+            if not force:
+                raise ValidationAlreadyExistsError(sub_mission_id, str(validation_path))
+            os.chmod(validation_path, stat.S_IRUSR | stat.S_IWUSR)
+            validation_path.unlink()
 
         parent_id = sub_mission_id.rsplit("-", 1)[0]
         sub_mission_dir = self.workspace.sub_mission_path(parent_id, sub_mission_id)
@@ -65,7 +69,7 @@ class ValidationService:
             repo_root = get_repo_root(cwd=self.workspace.root)
             status = get_status(cwd=repo_root)
             all_changed = list({*status.staged, *status.unstaged, *status.untracked})
-        except Exception:
+        except GitOperationError:
             all_changed = []
 
         # Also include diff vs HEAD
@@ -74,7 +78,7 @@ class ValidationService:
             for f in diff_files:
                 if f not in all_changed:
                     all_changed.append(f)
-        except Exception:
+        except GitOperationError:
             pass
 
         files_changed = [str(f) for f in all_changed]

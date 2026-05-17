@@ -110,7 +110,7 @@ class ValidationAlreadyExistsError(MissionForgeError):
     def __init__(self, sub_mission_id: str, validation_path: str):
         super().__init__(
             f"Validation already exists for {sub_mission_id} at {validation_path}",
-            "Use 'missionforge validate reset <id> --force' to remove and re-capture",
+            "Use 'missionforge validate capture <id> --force' to overwrite",
         )
 
 

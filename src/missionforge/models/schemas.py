@@ -1,5 +1,6 @@
 """Pydantic models for mission schemas."""
 
+import re
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -514,7 +515,6 @@ class SubMissionValidation(BaseModel):
     @field_validator("sub_mission_id")
     @classmethod
     def validate_sub_mission_id(cls, v: str) -> str:
-        import re
         pattern = r"^[A-Z]{2,4}-\d{3}-[A-Z]$"
         if not re.match(pattern, v):
             raise ValueError(

@@ -1,7 +1,9 @@
 """Unit tests for ValidationService metric logic."""
 
 import pytest
+from unittest.mock import MagicMock
 
+from missionforge.core.workspace import Workspace
 from missionforge.models.schemas import (
     DeterministicEvidence,
     ScopeCheckResult,
@@ -13,9 +15,8 @@ from missionforge.core.validation_service import ValidationService
 
 
 def _make_service() -> ValidationService:
-    """Create a ValidationService without workspace (for unit tests)."""
-    svc = object.__new__(ValidationService)
-    return svc
+    """Create a ValidationService with a mock workspace for unit tests."""
+    return ValidationService(workspace=MagicMock(spec=Workspace))
 
 
 def _make_metric(
