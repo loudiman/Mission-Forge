@@ -2,11 +2,33 @@
 
 AI-assisted mission decomposition and validation CLI tool for managing complex software development missions.
 
-## Installation
+## Install
 
-### Requirements
-- Python 3.11 or higher
-- pip
+### One-line install (recommended)
+
+**macOS / Linux / WSL:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/loudiman/Mission-Forge/main/install.sh | bash
+```
+
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/loudiman/Mission-Forge/main/install.ps1 | iex
+```
+
+**Windows (Command Prompt):**
+```cmd
+curl -fsSL https://raw.githubusercontent.com/loudiman/Mission-Forge/main/install.cmd -o install.cmd && install.cmd && del install.cmd
+```
+
+### Manual install
+
+For users who prefer not to pipe scripts to a shell:
+
+```bash
+pip install git+https://github.com/loudiman/Mission-Forge.git
+npx -y skills add loudiman/Mission-Forge
+```
 
 ### Install from source
 
@@ -18,6 +40,8 @@ cd Mission-Forge
 # Install in development mode with all dependencies
 pip install -e ".[dev]"
 ```
+
+**Requirements:** Python 3.11+, Node.js 18+ (for `npx`), Git
 
 ## Quick Start
 
