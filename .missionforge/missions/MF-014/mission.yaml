@@ -1,0 +1,62 @@
+# Mission Configuration: MF-014
+# This file defines the parent mission scope, constraints, and validation criteria.
+
+# Mission identifier - must match directory name
+id: MF-014
+
+# High-level mission objective
+# Describe what should be accomplished and why
+goal: |
+  Create a lightweight FastAPI backend that reads MissionForge state from `.missionforge/`
+  directory and exposes it to the web UI via REST API. This enables the Mission Board
+  frontend to visualize mission progress and state without requiring the full CLI to be
+  functional. The backend is read-only and works with frozen schemas and fixture data.
+
+# Paths that sub-missions CANNOT modify
+# Use glob patterns to protect critical code
+forbidden_paths:
+  - "src/missionforge/core/**"
+  - "src/missionforge/cli/**"
+  - "src/missionforge/schemas/**"
+  - "tests/**"
+  - ".missionforge/**"
+
+# Optional: Paths that sub-missions CAN modify
+# If not specified, all paths except forbidden_paths are allowed
+# allowed_paths:
+#   - "src/features/**"
+#   - "src/utils/**"
+
+# Aggregate metrics to validate across ALL sub-missions
+# Each metric must have at least one constraint: max, min, or target
+# Common metrics:
+#   - total_files_changed: Track scope creep
+#   - total_lines_changed: Measure impact
+#   - test_coverage: Ensure quality
+aggregate_metrics:
+  total_files_changed:
+    max: 30
+    description: "Backend should be lightweight - limit new files"
+  total_lines_changed:
+    max: 1500
+    description: "Keep backend implementation focused and reviewable"
+  test_coverage:
+    min: 80
+    description: "Ensure all API endpoints are well-tested"
+
+# Command to validate mission completion
+# This should run your test suite or validation checks
+# Examples:
+#   - "pytest tests/"
+#   - "npm test"
+#   - "make test"
+test_command: "pytest tests/integration/test_backend_api.py tests/unit/backend/ -v"
+
+# Sub-missions (populated by 'missionforge decompose')
+# Each sub-mission represents a discrete, reviewable unit of work
+sub_missions: []
+
+# Optional: Additional metadata
+# owner: "team-name"
+# priority: "high"
+# estimated_hours: 8
