@@ -9,7 +9,8 @@ from ..core.config import MissionForgeConfig
 from ..core.exceptions import MissionForgeError
 from ..core.logging import setup_logging
 from ..core.workspace import Workspace
-from .commands import workspace
+from .commands import mission, workspace
+from .commands.workspace import init_workspace
 
 app = typer.Typer(
     name="missionforge",
@@ -52,6 +53,16 @@ def get_config() -> MissionForgeConfig:
 
 # Register command groups
 app.add_typer(workspace.app, name="workspace")
+app.command("mission", context_settings={"allow_extra_args": True})(mission.mission_command)
+
+
+@app.command("init")
+def init_mission(
+    mission_id: str = typer.Argument(..., help="Mission ID (e.g., MF-001)"),
+    force: bool = typer.Option(False, "--force", help="Overwrite existing mission"),
+) -> None:
+    """Initialize a new mission workspace (alias for 'workspace init')."""
+    init_workspace(mission_id, force)
 
 
 @app.callback()
