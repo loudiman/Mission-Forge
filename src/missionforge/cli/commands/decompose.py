@@ -81,9 +81,13 @@ def decompose_command(
     console.print(f"\n[bold cyan]Step 2:[/bold cyan] Setting up sub-missions directory...")
     
     sub_missions_dir = mission_path / "sub-missions"
+    already_existed = sub_missions_dir.exists()
     sub_missions_dir.mkdir(exist_ok=True)
-    
-    console.print(f"[green]✓[/green] Created: {sub_missions_dir}")
+
+    if already_existed:
+        console.print(f"[cyan]ℹ[/cyan] Already exists: {sub_missions_dir}")
+    else:
+        console.print(f"[green]✓[/green] Created: {sub_missions_dir}")
 
     # Step 3: Display instructions and templates
     console.print(f"\n[bold cyan]Step 3:[/bold cyan] Create sub-mission files")
@@ -256,14 +260,15 @@ def _display_current_status(
                     status = "❌ Parent mismatch"
                     validation = f"Expected: {parent_id}"
                 else:
-                    # Validate ID format
+                    # Validate ID format: suffix must be exactly one letter A-Z.
+                    # This intentionally caps each parent at 26 sub-missions.
                     pattern = rf"^{re.escape(parent_id)}-[A-Z]$"
                     if re.match(pattern, sub_mission.id):
                         status = "✓ Valid"
                         validation = "OK"
                     else:
                         status = "❌ Invalid ID"
-                        validation = f"Must match: {parent_id}-[A-Z]"
+                        validation = f"Must be {parent_id}-A … {parent_id}-Z (max 26)"
                         
             except Exception as e:
                 status = "❌ Invalid"
@@ -342,12 +347,14 @@ def validate_submission_command(
         console.print(f"[red]✗[/red] Schema validation failed: {e}")
         raise typer.Exit(1)
 
-    # Validate ID format
+    # Validate ID format: suffix must be exactly one letter A-Z.
+    # This intentionally caps each parent mission at 26 sub-missions (A–Z).
     pattern = rf"^{re.escape(mission_id)}-[A-Z]$"
     if not re.match(pattern, sub_mission.id):
         errors.append(
             f"Invalid sub-mission ID format: {sub_mission.id}\n"
-            f"  Expected pattern: {mission_id}-[A-Z] (e.g., {mission_id}-A)"
+            f"  Expected: {mission_id}-A through {mission_id}-Z "
+            f"(single letter suffix, max 26 sub-missions per parent)"
         )
     else:
         console.print(f"[green]✓[/green] ID format valid: {sub_mission.id}")
@@ -422,35 +429,40 @@ def _check_path_overlaps(
 ) -> list[str]:
     """Check for overlapping allowed_paths with other sub-missions."""
     overlaps = []
-    
+
     if not sub_mission.allowed_paths:
         return overlaps
-    
+
     current_spec = pathspec.PathSpec.from_lines("gitignore", sub_mission.allowed_paths)
-    
+
     for other_file in sub_missions_dir.glob("*.yaml"):
         if other_file == current_file:
             continue
-        
+
         try:
             other_mission = SchemaValidator.validate_sub_mission_file(other_file)
             if not other_mission.allowed_paths:
                 continue
-            
-            # Check if any paths overlap
+
+            other_spec = pathspec.PathSpec.from_lines("gitignore", other_mission.allowed_paths)
+
+            # Collect conflicting paths from both directions into a set so that
+            # a path found by both checks (the common case for identical entries)
+            # is reported only once.
+            conflict_paths: set[str] = set()
+
             for path in other_mission.allowed_paths:
                 if current_spec.match_file(path):
-                    overlaps.append(
-                        f"Path '{path}' from {other_mission.id} overlaps with this sub-mission's allowed_paths"
-                    )
-            
-            # Check reverse
-            other_spec = pathspec.PathSpec.from_lines("gitignore", other_mission.allowed_paths)
+                    conflict_paths.add(path)
+
             for path in sub_mission.allowed_paths:
                 if other_spec.match_file(path):
-                    overlaps.append(
-                        f"Path '{path}' overlaps with {other_mission.id}'s allowed_paths"
-                    )
+                    conflict_paths.add(path)
+
+            for path in sorted(conflict_paths):
+                overlaps.append(
+                    f"Path '{path}' overlaps with {other_mission.id}'s allowed_paths"
+                )
         except Exception:
             # Skip invalid files
             continue

@@ -130,14 +130,20 @@ class SubMission(BaseModel):
     @field_validator("id")
     @classmethod
     def validate_sub_mission_id(cls, v: str) -> str:
-        """Validate sub-mission ID format."""
+        """Validate sub-mission ID format.
+
+        The trailing single uppercase letter (A–Z) means each parent mission
+        supports a maximum of 26 sub-missions. This is an intentional design
+        constraint to keep decompositions focused and reviewable.
+        """
         import re
 
         pattern = r"^[A-Z]{2,4}-\d{3}-[A-Z]$"
         if not re.match(pattern, v):
             raise ValueError(
                 f"Invalid sub-mission ID format: {v}. "
-                "Must match pattern: [A-Z]{{2,4}}-\\d{{3}}-[A-Z] (e.g., MF-001-A)"
+                "Must match pattern: [A-Z]{2,4}-\\d{3}-[A-Z] (e.g., MF-001-A). "
+                "The suffix is a single letter A–Z, allowing up to 26 sub-missions per parent."
             )
         return v
 

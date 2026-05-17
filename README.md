@@ -115,6 +115,7 @@ Validate a parent mission configuration file.
 **Example:**
 ```bash
 missionforge mission MF-001 --validate
+```
 
 ### Decompose Commands
 
@@ -158,8 +159,6 @@ Validate a specific sub-mission file.
 **Example:**
 ```bash
 missionforge validate-submission MF-001 MF-001-A
-```
-
 ```
 
 ### Workspace Commands
