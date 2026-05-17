@@ -1,6 +1,7 @@
-from fastapi.testclient import TestClient
 from fastapi import FastAPI
-from src.missionforge.backend.routers.missions import router, get_repository
+from fastapi.testclient import TestClient
+
+from src.missionforge.backend.routers.missions import get_repository, router
 
 app = FastAPI()
 app.include_router(router)
@@ -10,10 +11,10 @@ client = TestClient(app)
 class MockRepository:
     def __init__(self):
         pass
-    
+
     def list_missions(self):
         return ["MF-001"]
-        
+
     def read_mission_yaml(self, mission_id):
         if mission_id == "MF-001":
             return {
@@ -22,7 +23,7 @@ class MockRepository:
                 "sub_missions": ["MF-001-A"]
             }
         return None
-        
+
     def read_sub_mission_yaml(self, mission_id, sub_id):
         if sub_id == "MF-001-A":
             return {
@@ -32,7 +33,7 @@ class MockRepository:
                 "status": "PASSED"
             }
         return None
-        
+
     def read_report(self, mission_id):
         if mission_id == "MF-001":
             return "# Report"

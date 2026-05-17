@@ -1,8 +1,8 @@
 from fastapi import FastAPI
+
 from .config import get_settings
-from .routers.missions import router as missions_router
 from .middleware.cors import setup_cors
-from fastapi.openapi.utils import get_openapi
+from .routers.missions import router as missions_router
 
 settings = get_settings()
 
@@ -14,15 +14,15 @@ def create_app() -> FastAPI:
         docs_url="/docs/api",
         redoc_url=None,
     )
-    
+
     setup_cors(app, allow_origins=["*"]) # Accept all origins for local dev
-    
+
     app.include_router(missions_router)
-    
+
     @app.get("/health")
     def health_check():
         return {"status": "ok"}
-        
+
     return app
 
 app = create_app()

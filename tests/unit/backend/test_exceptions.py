@@ -1,9 +1,10 @@
 """Tests for backend exception classes."""
 
 import pytest
+
 from missionforge.backend.exceptions import (
-    BackendError,
     APIError,
+    BackendError,
     DataNotFoundError,
     InvalidDataError,
 )

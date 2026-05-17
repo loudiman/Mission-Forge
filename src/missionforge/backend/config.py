@@ -5,7 +5,6 @@ Manages configuration settings for the MissionForge backend API server.
 """
 
 from pathlib import Path
-from typing import List
 
 from pydantic_settings import BaseSettings
 
@@ -17,18 +16,18 @@ class BackendSettings(BaseSettings):
     host: str = "127.0.0.1"
     port: int = 8000
     reload: bool = False
-    
+
     # CORS settings
-    cors_origins: List[str] = [
+    cors_origins: list[str] = [
         "http://localhost:3000",
         "http://localhost:5173",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
     ]
-    
+
     # Repository settings
     repository_root: Path | None = None
-    
+
     class Config:
         """Pydantic configuration."""
         env_prefix = "MISSIONFORGE_"
@@ -38,7 +37,7 @@ class BackendSettings(BaseSettings):
 def get_settings() -> BackendSettings:
     """
     Get backend settings instance.
-    
+
     Returns:
         BackendSettings: Configuration settings
     """

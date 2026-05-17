@@ -1,8 +1,14 @@
-from fastapi import APIRouter, HTTPException, Depends, Path
-from typing import List
 
+from fastapi import APIRouter, Depends, HTTPException, Path
+
+from ..models.responses import (
+    MissionDetail,
+    MissionSummary,
+    ReportResponse,
+    SubMissionDetail,
+    SubMissionSummary,
+)
 from ..repository import MissionRepository
-from ..models.responses import MissionSummary, MissionDetail, SubMissionSummary, SubMissionDetail, ReportResponse
 
 router = APIRouter(prefix="/api/missions", tags=["missions"])
 
@@ -12,7 +18,7 @@ def get_repository() -> MissionRepository:
         raise HTTPException(status_code=500, detail="MissionForge repository not found")
     return repo
 
-@router.get("", response_model=List[MissionSummary])
+@router.get("", response_model=list[MissionSummary])
 def list_missions(repo: MissionRepository = Depends(get_repository)):
     """List all parent missions."""
     try:
@@ -23,7 +29,7 @@ def list_missions(repo: MissionRepository = Depends(get_repository)):
             result.append(MissionSummary(id=m_id, status="UNKNOWN"))
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 @router.get("/{mission_id}", response_model=MissionDetail)
 def get_mission(
@@ -34,7 +40,7 @@ def get_mission(
     mission_yaml = repo.read_mission_yaml(mission_id)
     if not mission_yaml:
         raise HTTPException(status_code=404, detail=f"Mission {mission_id} not found")
-    
+
     return MissionDetail(
         id=mission_yaml.get("id", mission_id),
         goal=mission_yaml.get("goal"),
@@ -46,7 +52,7 @@ def get_mission(
         aggregate_metrics=mission_yaml.get("aggregate_metrics", {})
     )
 
-@router.get("/{mission_id}/sub-missions", response_model=List[SubMissionSummary])
+@router.get("/{mission_id}/sub-missions", response_model=list[SubMissionSummary])
 def list_sub_missions(
     mission_id: str = Path(..., description="The ID of the parent mission"),
     repo: MissionRepository = Depends(get_repository)
@@ -55,7 +61,7 @@ def list_sub_missions(
     mission_yaml = repo.read_mission_yaml(mission_id)
     if not mission_yaml:
         raise HTTPException(status_code=404, detail=f"Mission {mission_id} not found")
-    
+
     sub_missions = mission_yaml.get("sub_missions", [])
     result = []
     for sub_id in sub_missions:
@@ -80,7 +86,7 @@ def get_sub_mission(
     sub_yaml = repo.read_sub_mission_yaml(mission_id, sub_id)
     if not sub_yaml:
         raise HTTPException(status_code=404, detail=f"Sub-mission {sub_id} not found for mission {mission_id}")
-    
+
     return SubMissionDetail(
         id=sub_yaml.get("id", sub_id),
         parent=sub_yaml.get("parent", mission_id),
@@ -100,5 +106,5 @@ def get_report(
     report_content = repo.read_report(mission_id)
     if report_content is None:
         raise HTTPException(status_code=404, detail=f"Report not found for mission {mission_id}")
-    
+
     return ReportResponse(content=report_content)

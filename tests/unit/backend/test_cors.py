@@ -1,5 +1,5 @@
-import pytest
 from fastapi.testclient import TestClient
+
 from src.missionforge.backend.main import app
 
 client = TestClient(app)

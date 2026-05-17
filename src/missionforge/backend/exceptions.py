@@ -19,11 +19,11 @@ class APIError(BackendError):
 
 class DataNotFoundError(BackendError):
     """Raised when requested data is not found."""
-    
+
     def __init__(self, resource: str, identifier: str):
         """
         Initialize data not found error.
-        
+
         Args:
             resource: Type of resource (e.g., 'mission', 'sub-mission')
             identifier: Resource identifier

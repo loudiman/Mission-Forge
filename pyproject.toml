@@ -88,6 +88,7 @@ select = [
 ignore = [
     "E501",  # line too long (handled by black)
     "UP017", # Use `datetime.UTC` alias (not available in Python 3.11)
+    "B008",  # FastAPI Depends/Path in function defaults is intentional
 ]
 
 [tool.mypy]
