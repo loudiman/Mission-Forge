@@ -60,6 +60,7 @@ app.command("report")(report.report_command)
 app.command("decompose")(decompose.decompose_command)
 app.command("validate-submission")(decompose.validate_submission_command)
 app.command("plan")(plan.plan_command)
+app.command("next")(next.next_command)
 
 
 @app.command("init")

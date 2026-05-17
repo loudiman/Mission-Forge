@@ -374,7 +374,7 @@ class SchemaValidator:
         sub_missions_dir = mission_path / "sub-missions"
         if sub_missions_dir.exists():
             available_missions = []
-            for sub_file in sub_missions_dir.glob("*.yaml"):
+            for sub_file in _iter_sub_mission_files(sub_missions_dir):
                 try:
                     sub_mission = SchemaValidator.validate_sub_mission_file(sub_file)
                     available_missions.append(sub_mission.id)
@@ -397,7 +397,7 @@ class SchemaValidator:
                     results["errors"].append(f"Sub-mission {sub_file.name}: {e}")
 
             # Validate dependencies
-            for sub_file in sub_missions_dir.glob("*.yaml"):
+            for sub_file in _iter_sub_mission_files(sub_missions_dir):
                 try:
                     sub_mission = SchemaValidator.validate_sub_mission_file(sub_file)
                     SchemaValidator.validate_sub_mission_dependencies(
@@ -407,6 +407,18 @@ class SchemaValidator:
                     results["errors"].append(str(e))
 
         return results
+
+
+def _iter_sub_mission_files(sub_missions_dir: Path) -> list[Path]:
+    """Return canonical and legacy sub-mission definition files."""
+    files = []
+    for sub_dir in sorted(path for path in sub_missions_dir.iterdir() if path.is_dir()):
+        sub_file = sub_dir / "sub-mission.yaml"
+        if sub_file.exists():
+            files.append(sub_file)
+
+    files.extend(sorted(sub_missions_dir.glob("*.yaml")))
+    return files
 
 
 # Made with Bob

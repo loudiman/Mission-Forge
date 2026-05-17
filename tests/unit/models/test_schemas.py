@@ -9,6 +9,7 @@ from missionforge.models.schemas import (
     ExecutionPlan,
     MetricDefinition,
     ParentMission,
+    PathOverlap,
     SubMission,
     Validation,
     ValidationMetrics,
@@ -338,11 +339,40 @@ class TestExecutionPlan:
         assert len(plan.execution_order) == 3
         assert len(plan.dependency_graph) == 3
 
+    def test_execution_plan_with_sub_missions_and_path_overlaps(self):
+        """Test execution plan stores sub-missions and path overlap warnings."""
+        plan = ExecutionPlan(
+            sub_missions=["MF-001-A", "MF-001-B"],
+            execution_order=["MF-001-A", "MF-001-B"],
+            dependency_graph={"MF-001-A": [], "MF-001-B": ["MF-001-A"]},
+            path_overlaps=[
+                PathOverlap(
+                    sub_mission_a="MF-001-A",
+                    sub_mission_b="MF-001-B",
+                    overlapping_patterns=["src/shared/config.py"],
+                )
+            ],
+        )
+        assert plan.sub_missions == plan.execution_order
+        assert plan.path_overlaps[0].overlapping_patterns == ["src/shared/config.py"]
+
     def test_empty_execution_plan(self):
         """Test empty execution plan."""
         plan = ExecutionPlan()
         assert plan.execution_order == []
         assert plan.dependency_graph == {}
+        assert plan.sub_missions == []
+        assert plan.path_overlaps == []
+
+    def test_sub_missions_must_match_execution_order(self):
+        """Test sub_missions cannot drift from execution_order."""
+        with pytest.raises(ValidationError) as exc_info:
+            ExecutionPlan(
+                sub_missions=["MF-001-A", "MF-001-C"],
+                execution_order=["MF-001-A", "MF-001-B"],
+                dependency_graph={"MF-001-A": [], "MF-001-B": ["MF-001-A"]},
+            )
+        assert "sub_missions" in str(exc_info.value)
 
     def test_missing_dependency_in_execution_order(self):
         """Test that dependencies must be in execution order."""

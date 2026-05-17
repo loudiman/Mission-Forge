@@ -310,12 +310,26 @@ class Validation(BaseModel):
         return v
 
 
+class PathOverlap(BaseModel):
+    """Allowed path overlap between two sub-missions."""
+
+    sub_mission_a: str = Field(..., description="First sub-mission ID")
+    sub_mission_b: str = Field(..., description="Second sub-mission ID")
+    overlapping_patterns: list[str] = Field(
+        default_factory=list,
+        description="Allowed path patterns that overlap between the sub-missions",
+    )
+
+
 class ExecutionPlan(BaseModel):
     """Execution plan with dependency graph."""
 
     mission_id: str | None = Field(None, description="Parent mission ID")
     decomposition_rationale: str | None = Field(
         None, description="Rationale for how the mission was decomposed"
+    )
+    sub_missions: list[str] = Field(
+        default_factory=list, description="Sub-mission IDs included in this plan"
     )
     execution_order: list[str] = Field(
         default_factory=list, description="Ordered list of sub-mission IDs to execute"
@@ -324,12 +338,20 @@ class ExecutionPlan(BaseModel):
         default_factory=dict,
         description="Map of sub-mission ID to list of dependencies",
     )
+    path_overlaps: list[PathOverlap] = Field(
+        default_factory=list,
+        description="Non-blocking allowed_path overlap warnings",
+    )
 
     @model_validator(mode="after")
     def validate_dependencies(self) -> "ExecutionPlan":
         """Validate dependency graph consistency."""
         # Check all dependencies exist in execution order
         all_missions = set(self.execution_order)
+
+        if self.sub_missions and set(self.sub_missions) != all_missions:
+            raise ValueError("sub_missions must contain the same IDs as execution_order")
+
         for mission_id, deps in self.dependency_graph.items():
             if mission_id not in all_missions:
                 raise ValueError(
@@ -367,6 +389,7 @@ class ExecutionPlan(BaseModel):
                     raise ValueError("Circular dependency detected in execution plan")
 
         return self
+
 
 class SubMissionBaselineMetric(BaseModel):
     """A single metric in a sub-mission baseline."""
