@@ -423,6 +423,23 @@ class TestValidateMissionStructure:
         assert "MF-001-A" in results["sub_missions"]
         assert len(results["errors"]) == 0
 
+    def test_valid_mission_structure_with_canonical_sub_mission(
+        self, tmp_mission_dir, valid_parent_mission_data, valid_sub_mission_data
+    ):
+        """Test validating canonical sub-mission directory layout."""
+        mission_file = tmp_mission_dir / "mission.yaml"
+        with open(mission_file, "w") as f:
+            yaml.dump(valid_parent_mission_data, f)
+
+        sub_dir = tmp_mission_dir / "sub-missions" / "MF-001-A"
+        sub_dir.mkdir()
+        with open(sub_dir / "sub-mission.yaml", "w") as f:
+            yaml.dump(valid_sub_mission_data, f)
+
+        results = SchemaValidator.validate_mission_structure(tmp_mission_dir)
+        assert "MF-001-A" in results["sub_missions"]
+        assert len(results["errors"]) == 0
+
     def test_missing_mission_file(self, tmp_mission_dir):
         """Test error when mission.yaml is missing."""
         with pytest.raises(MFValidationError) as exc_info:

@@ -163,7 +163,9 @@ class TestCheckAllPathOverlaps:
         ]
         warnings = _check_all_path_overlaps(sms)
         assert len(warnings) == 1
-        assert "MF-001-A" in warnings[0] and "MF-001-B" in warnings[0]
+        assert warnings[0].sub_mission_a == "MF-001-A"
+        assert warnings[0].sub_mission_b == "MF-001-B"
+        assert warnings[0].overlapping_patterns == ["src/shared/util.py"]
 
     def test_asymmetric_overlap_detected(self):
         # sm_a has a specific file; sm_b has a broad glob that covers it.
@@ -175,7 +177,9 @@ class TestCheckAllPathOverlaps:
         ]
         warnings = _check_all_path_overlaps(sms)
         assert len(warnings) == 1
-        assert "MF-001-A" in warnings[0] and "MF-001-B" in warnings[0]
+        assert warnings[0].sub_mission_a == "MF-001-A"
+        assert warnings[0].sub_mission_b == "MF-001-B"
+        assert warnings[0].overlapping_patterns == ["src/shared/config.py"]
 
     def test_one_warning_per_pair(self):
         # Even if both directions match, only one warning per pair.

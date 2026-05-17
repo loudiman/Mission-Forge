@@ -91,7 +91,7 @@ def workspace_status() -> None:
         sub_missions_dir = mission_path / "sub-missions"
         sub_mission_count = 0
         if sub_missions_dir.exists():
-            sub_mission_count = len(list(sub_missions_dir.glob("*.yaml")))
+            sub_mission_count = len(_iter_sub_mission_files(sub_missions_dir))
         table.add_row(mission_id, "Active", str(sub_mission_count))
 
     console.print(table)
@@ -166,6 +166,18 @@ sub_missions: []
 # estimated_hours: 8
 """
     path.write_text(template)
+
+
+def _iter_sub_mission_files(sub_missions_dir: Path) -> list[Path]:
+    """Return canonical and legacy sub-mission definition files."""
+    files = []
+    for sub_dir in sorted(path for path in sub_missions_dir.iterdir() if path.is_dir()):
+        sub_file = sub_dir / "sub-mission.yaml"
+        if sub_file.exists():
+            files.append(sub_file)
+
+    files.extend(sorted(sub_missions_dir.glob("*.yaml")))
+    return files
 
 
 def _create_plan_template(path: Path) -> None:

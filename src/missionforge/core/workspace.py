@@ -66,6 +66,20 @@ class Workspace:
         """
         return self.mission_path(mission_id) / "sub-missions" / sub_mission_id
 
+    def sub_mission_definition_path(self, mission_id: str, sub_mission_id: str) -> Path:
+        """Get the sub-mission YAML path, supporting canonical and legacy layouts.
+
+        Canonical layout:
+            sub-missions/<sub-mission-id>/sub-mission.yaml
+
+        Legacy layout:
+            sub-missions/<sub-mission-id>.yaml
+        """
+        canonical_path = self.sub_mission_path(mission_id, sub_mission_id) / "sub-mission.yaml"
+        if canonical_path.exists():
+            return canonical_path
+        return self.mission_path(mission_id) / "sub-missions" / f"{sub_mission_id}.yaml"
+
     def exists(self) -> bool:
         """Check if workspace is initialized.
 
