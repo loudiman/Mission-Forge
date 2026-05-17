@@ -117,6 +117,50 @@ Validate a parent mission configuration file.
 missionforge mission MF-001 --validate
 ```
 
+### Decompose Commands
+
+#### `missionforge decompose <MISSION_ID>`
+
+Decompose a parent mission into sub-missions with guided workflow.
+
+**What it does:**
+1. Validates the parent mission
+2. Creates sub-missions directory structure
+3. Displays instructions and templates for Bob
+4. Shows validation guidance
+5. Provides plan.yaml guidance
+6. Displays current status
+
+**Arguments:**
+- `MISSION_ID`: Parent mission identifier
+
+**Example:**
+```bash
+missionforge decompose MF-001
+```
+
+**See also:** [Decompose Command Documentation](docs/DECOMPOSE_COMMAND.md)
+
+#### `missionforge validate-submission <MISSION_ID> <SUB_MISSION_ID>`
+
+Validate a specific sub-mission file.
+
+**What it validates:**
+- Sub-mission ID format (e.g., MF-001-A)
+- Parent reference correctness
+- Forbidden path conflicts
+- Dependency existence
+- Path overlaps (warnings)
+
+**Arguments:**
+- `MISSION_ID`: Parent mission identifier
+- `SUB_MISSION_ID`: Sub-mission identifier to validate
+
+**Example:**
+```bash
+missionforge validate-submission MF-001 MF-001-A
+```
+
 ### Workspace Commands
 
 #### `missionforge workspace init <MISSION_ID>`
@@ -142,6 +186,87 @@ Show workspace status and list all missions.
 **Example:**
 ```bash
 missionforge workspace status
+```
+
+### Baseline Commands
+
+Baseline commands manage metric measurements for sub-missions before implementation begins.
+
+#### `missionforge baseline capture <SUB_MISSION_ID>`
+
+Capture baseline metrics for a sub-mission.
+
+**Arguments:**
+- `SUB_MISSION_ID`: Sub-mission identifier (e.g., `MF-001-A`)
+
+**Options:**
+- `--force`: Overwrite existing baseline capture
+
+**Example:**
+```bash
+missionforge baseline capture MF-001-A
+```
+
+**Output:**
+```
+✓ Baseline captured for MF-001-A
+
+Generated: .missionforge/missions/MF-001/sub-missions/MF-001-A/baseline.todo.json
+
+Metrics to fill (3):
+  • rest_endpoint_exists (bool)
+  • corba_references_count (int)
+  • test_coverage (float)
+
+Next steps:
+1. Analyze the code in allowed paths
+2. Fill metric values in baseline.todo.json
+3. Run: missionforge baseline commit MF-001-A
+```
+
+#### `missionforge baseline commit <SUB_MISSION_ID>`
+
+Commit baseline after filling metric values.
+
+**Arguments:**
+- `SUB_MISSION_ID`: Sub-mission identifier (e.g., `MF-001-A`)
+
+**Example:**
+```bash
+missionforge baseline commit MF-001-A
+```
+
+**Output:**
+```
+✓ Baseline committed for MF-001-A
+
+Committed: .missionforge/missions/MF-001/sub-missions/MF-001-A/baseline.json
+
+Baseline Summary:
+┌─────────────────────────┬──────────┬───────┐
+│ Metric                  │ Target   │ Value │
+├─────────────────────────┼──────────┼───────┤
+│ rest_endpoint_exists    │ false    │ false │
+│ corba_references_count  │ 7        │ 7     │
+│ test_coverage           │ 78.5     │ 78.5  │
+└─────────────────────────┴──────────┴───────┘
+
+⚠️  baseline.json is now immutable
+```
+
+#### `missionforge baseline reset <SUB_MISSION_ID>`
+
+Reset baseline to allow re-capture.
+
+**Arguments:**
+- `SUB_MISSION_ID`: Sub-mission identifier (e.g., `MF-001-A`)
+
+**Options:**
+- `--force`: Remove committed baseline (required for committed baselines)
+
+**Example:**
+```bash
+missionforge baseline reset MF-001-A --force
 ```
 
 ### Version Command

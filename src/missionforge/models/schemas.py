@@ -1,5 +1,6 @@
 """Pydantic models for mission schemas."""
 
+import re
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -68,6 +69,9 @@ class ParentMission(BaseModel):
     sub_missions: list[str] = Field(
         default_factory=list, description="List of sub-mission IDs"
     )
+    decomposition_rationale: str | None = Field(
+        None, description="Rationale for how the mission was decomposed into sub-missions"
+    )
 
     @field_validator("id")
     @classmethod
@@ -130,14 +134,20 @@ class SubMission(BaseModel):
     @field_validator("id")
     @classmethod
     def validate_sub_mission_id(cls, v: str) -> str:
-        """Validate sub-mission ID format."""
+        """Validate sub-mission ID format.
+
+        The trailing single uppercase letter (A–Z) means each parent mission
+        supports a maximum of 26 sub-missions. This is an intentional design
+        constraint to keep decompositions focused and reviewable.
+        """
         import re
 
         pattern = r"^[A-Z]{2,4}-\d{3}-[A-Z]$"
         if not re.match(pattern, v):
             raise ValueError(
                 f"Invalid sub-mission ID format: {v}. "
-                "Must match pattern: [A-Z]{{2,4}}-\\d{{3}}-[A-Z] (e.g., MF-001-A)"
+                "Must match pattern: [A-Z]{2,4}-\\d{3}-[A-Z] (e.g., MF-001-A). "
+                "The suffix is a single letter A–Z, allowing up to 26 sub-missions per parent."
             )
         return v
 
@@ -303,6 +313,10 @@ class Validation(BaseModel):
 class ExecutionPlan(BaseModel):
     """Execution plan with dependency graph."""
 
+    mission_id: str | None = Field(None, description="Parent mission ID")
+    decomposition_rationale: str | None = Field(
+        None, description="Rationale for how the mission was decomposed"
+    )
     execution_order: list[str] = Field(
         default_factory=list, description="Ordered list of sub-mission IDs to execute"
     )
@@ -353,6 +367,338 @@ class ExecutionPlan(BaseModel):
                     raise ValueError("Circular dependency detected in execution plan")
 
         return self
+
+class SubMissionBaselineMetric(BaseModel):
+    """A single metric in a sub-mission baseline."""
+
+    metric_id: str = Field(..., description="Unique identifier for the metric")
+    description: str = Field(..., description="Human-readable description of what is measured")
+    baseline_target: bool | int | float | str = Field(
+        ..., description="Expected baseline value before implementation"
+    )
+    value: bool | int | float | str | None = Field(
+        None, description="Actual measured value (null until filled by Bob)"
+    )
+
+    @field_validator("metric_id")
+    @classmethod
+    def validate_metric_id(cls, v: str) -> str:
+        """Ensure metric_id is not empty."""
+        if not v.strip():
+            raise ValueError("metric_id cannot be empty")
+        return v
+
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, v: str) -> str:
+        """Ensure description is not empty."""
+        if not v.strip():
+            raise ValueError("description cannot be empty")
+        return v
+
+    @model_validator(mode="after")
+    def validate_value_type(self) -> "SubMissionBaselineMetric":
+        """Ensure value type matches baseline_target type when value is not None."""
+        if self.value is not None:
+            target_type = type(self.baseline_target)
+            value_type = type(self.value)
+
+            # Allow numeric type compatibility (int/float are interchangeable)
+            # But exclude bool since bool is a subclass of int in Python
+            numeric_types = (int, float)
+            is_target_numeric = isinstance(self.baseline_target, numeric_types) and not isinstance(self.baseline_target, bool)
+            is_value_numeric = isinstance(self.value, numeric_types) and not isinstance(self.value, bool)
+
+            if is_target_numeric and is_value_numeric:
+                return self
+
+            # For non-numeric types, require exact match
+            if target_type != value_type:
+                raise ValueError(
+                    f"Value type ({value_type.__name__}) does not match "
+                    f"baseline_target type ({target_type.__name__})"
+                )
+        return self
+
+
+class SubMissionBaseline(BaseModel):
+    """Baseline for sub-mission custom metrics."""
+
+    sub_mission_id: str = Field(..., description="Sub-mission identifier (e.g., MF-001-A)")
+    timestamp: str | None = Field(
+        None, description="ISO 8601 timestamp when baseline was committed"
+    )
+    status: str | None = Field(
+        None, description="Baseline status: 'captured' or 'committed'"
+    )
+    metrics: list[SubMissionBaselineMetric] = Field(
+        ..., description="List of baseline metrics"
+    )
+
+    @field_validator("sub_mission_id")
+    @classmethod
+    def validate_sub_mission_id(cls, v: str) -> str:
+        """Validate sub-mission ID format."""
+        import re
+
+        pattern = r"^[A-Z]{2,4}-\d{3}-[A-Z]$"
+        if not re.match(pattern, v):
+            raise ValueError(
+                f"Invalid sub-mission ID format: {v}. "
+                "Must match pattern: [A-Z]{{2,4}}-\\d{{3}}-[A-Z] (e.g., MF-001-A)"
+            )
+        return v
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str | None) -> str | None:
+        """Validate status is one of allowed values."""
+        if v is not None and v not in ("captured", "committed"):
+            raise ValueError(f"Invalid status: {v}. Must be 'captured' or 'committed'")
+        return v
+
+    @field_validator("metrics")
+    @classmethod
+    def validate_metrics_not_empty(cls, v: list[SubMissionBaselineMetric]) -> list[SubMissionBaselineMetric]:
+        """Ensure at least one metric is defined."""
+        if not v:
+            raise ValueError("At least one metric must be defined")
+        return v
+
+
+class ScopeCheckResult(BaseModel):
+    """Result of scope validation."""
+
+    allowed_paths_satisfied: bool = Field(..., description="All changed files are within allowed paths")
+    forbidden_paths_violated: bool = Field(..., description="Any changed files violate forbidden paths")
+    violations: list[str] = Field(default_factory=list, description="List of violating file paths")
+
+
+class TestResults(BaseModel):
+    """Test execution results."""
+
+    command: str = Field(..., description="Test command that was executed")
+    exit_code: int = Field(..., description="Process exit code")
+    output: str = Field(..., description="Combined stdout/stderr output")
+    passed: bool = Field(..., description="Whether tests passed (exit_code == 0)")
+    duration: float = Field(..., description="Execution time in seconds")
+
+
+class DeterministicEvidence(BaseModel):
+    """CLI-captured deterministic evidence."""
+
+    files_changed: list[str] = Field(default_factory=list, description="List of changed file paths")
+    scope_check: ScopeCheckResult = Field(..., description="Scope validation results")
+    test_results: TestResults | None = Field(None, description="Test execution results if command defined")
+
+
+class ValidationMetric(BaseModel):
+    """Single metric with baseline/target/final values."""
+
+    metric_id: str = Field(..., description="Unique metric identifier")
+    baseline_value: bool | int | float | str | None = Field(None, description="Value from baseline.json")
+    target_value: bool | int | float | str = Field(..., description="Target value from sub-mission definition")
+    final_value: bool | int | float | str | None = Field(None, description="Final measured value (filled by Bob)")
+    status: str | None = Field(None, description="PASSED or FAILED (set on commit)")
+
+    @field_validator("metric_id")
+    @classmethod
+    def validate_metric_id(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("metric_id cannot be empty")
+        return v
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str | None) -> str | None:
+        if v is not None and v not in ("PASSED", "FAILED"):
+            raise ValueError(f"Invalid status: {v}. Must be 'PASSED' or 'FAILED'")
+        return v
+
+
+class SubMissionValidation(BaseModel):
+    """Complete validation state for a sub-mission."""
+
+    sub_mission_id: str = Field(..., description="Sub-mission identifier (e.g., MF-001-A)")
+    timestamp: str | None = Field(None, description="ISO 8601 timestamp when validation was committed")
+    status: str = Field(..., description="captured, PASSED, FAILED, or BLOCKED")
+    deterministic_evidence: DeterministicEvidence = Field(..., description="CLI-captured evidence")
+    metrics: list[ValidationMetric] = Field(default_factory=list, description="Metrics to validate")
+
+    @field_validator("sub_mission_id")
+    @classmethod
+    def validate_sub_mission_id(cls, v: str) -> str:
+        pattern = r"^[A-Z]{2,4}-\d{3}-[A-Z]$"
+        if not re.match(pattern, v):
+            raise ValueError(
+                f"Invalid sub-mission ID format: {v}. "
+                "Must match pattern: [A-Z]{{2,4}}-\\d{{3}}-[A-Z] (e.g., MF-001-A)"
+            )
+        return v
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        if v not in ("captured", "PASSED", "FAILED", "BLOCKED"):
+            raise ValueError(f"Invalid status: {v}. Must be one of: captured, PASSED, FAILED, BLOCKED")
+        return v
+
+
+class SubMissionSummary(BaseModel):
+    """Summary of a single sub-mission's validation status."""
+
+    id: str = Field(..., description="Sub-mission ID (e.g., MF-001-A)")
+    status: str = Field(..., description="PASSED, FAILED, or BLOCKED")
+    timestamp: str | None = Field(None, description="ISO 8601 timestamp")
+
+    @field_validator("id")
+    @classmethod
+    def validate_sub_mission_id(cls, v: str) -> str:
+        pattern = r"^[A-Z]{2,4}-\d{3}-[A-Z]$"
+        if not re.match(pattern, v):
+            raise ValueError(
+                f"Invalid sub-mission ID format: {v}. "
+                "Must match pattern: [A-Z]{{2,4}}-\\d{{3}}-[A-Z] (e.g., MF-001-A)"
+            )
+        return v
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        if v not in ("PASSED", "FAILED", "BLOCKED"):
+            raise ValueError(f"Invalid status: {v}. Must be PASSED, FAILED, or BLOCKED")
+        return v
+
+
+class SubMissionsAggregate(BaseModel):
+    """Aggregate summary of all sub-missions."""
+
+    total: int = Field(..., description="Total number of sub-missions")
+    passed: int = Field(..., description="Number of PASSED sub-missions")
+    failed: int = Field(..., description="Number of FAILED sub-missions")
+    blocked: int = Field(..., description="Number of BLOCKED sub-missions")
+    details: list[SubMissionSummary] = Field(
+        default_factory=list,
+        description="Detailed status of each sub-mission"
+    )
+
+    @field_validator("total", "passed", "failed", "blocked")
+    @classmethod
+    def validate_non_negative(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("Count cannot be negative")
+        return v
+
+    @model_validator(mode="after")
+    def validate_counts(self) -> "SubMissionsAggregate":
+        """Ensure counts add up correctly."""
+        if self.passed + self.failed + self.blocked != self.total:
+            raise ValueError("Sub-mission counts do not match total")
+        if len(self.details) != self.total:
+            raise ValueError("Details count does not match total")
+        return self
+
+
+class AggregateMetricResult(BaseModel):
+    """Result of an aggregate metric validation."""
+
+    metric_id: str = Field(..., description="Unique metric identifier")
+    baseline_value: bool | int | float | str | None = Field(
+        None,
+        description="Baseline value if available"
+    )
+    target_value: bool | int | float | str = Field(
+        ...,
+        description="Target value from mission definition"
+    )
+    final_value: bool | int | float | str | None = Field(
+        None,
+        description="Final measured value (filled by Bob)"
+    )
+    status: str = Field(..., description="PASSED or FAILED")
+
+    @field_validator("metric_id")
+    @classmethod
+    def validate_metric_id(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("metric_id cannot be empty")
+        return v
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        if v not in ("PASSED", "FAILED"):
+            raise ValueError(f"Invalid status: {v}. Must be PASSED or FAILED")
+        return v
+
+
+class ParentTestResult(BaseModel):
+    """Parent-level test execution result."""
+
+    command: str = Field(..., description="Test command executed")
+    exit_code: int = Field(..., description="Process exit code")
+    output: str = Field(..., description="Combined stdout/stderr")
+    passed: bool = Field(..., description="Whether tests passed")
+    duration: float = Field(..., description="Execution time in seconds")
+
+    @field_validator("duration")
+    @classmethod
+    def validate_duration(cls, v: float) -> float:
+        if v < 0:
+            raise ValueError("Duration cannot be negative")
+        return v
+
+
+class ForbiddenPathsCheck(BaseModel):
+    """Cross-sub-mission forbidden paths validation."""
+
+    violated: bool = Field(..., description="Whether any paths violated")
+    violations: list[str] = Field(
+        default_factory=list,
+        description="List of violating file paths"
+    )
+
+
+class ParentMissionValidation(BaseModel):
+    """Complete parent mission validation state."""
+
+    mission_id: str = Field(..., description="Parent mission ID")
+    timestamp: str = Field(..., description="ISO 8601 timestamp")
+    status: str = Field(..., description="PASSED, FAILED, or INCOMPLETE")
+    sub_missions: SubMissionsAggregate = Field(
+        ...,
+        description="Aggregate sub-mission status"
+    )
+    aggregate_metrics: list[AggregateMetricResult] = Field(
+        default_factory=list,
+        description="Aggregate metric validation results"
+    )
+    parent_test: ParentTestResult | None = Field(
+        None,
+        description="Parent test execution result"
+    )
+    forbidden_paths_check: ForbiddenPathsCheck = Field(
+        ...,
+        description="Forbidden paths validation result"
+    )
+
+    @field_validator("mission_id")
+    @classmethod
+    def validate_mission_id(cls, v: str) -> str:
+        pattern = r"^[A-Z]{2,4}-\d{3}[A-Z]?$"
+        if not re.match(pattern, v):
+            raise ValueError(
+                f"Invalid mission ID format: {v}. "
+                "Must match pattern: [A-Z]{{2,4}}-\\d{{3}}[A-Z]? (e.g., MF-001)"
+            )
+        return v
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        if v not in ("PASSED", "FAILED", "INCOMPLETE"):
+            raise ValueError(f"Invalid status: {v}. Must be PASSED, FAILED, or INCOMPLETE")
+        return v
 
 
 # Made with Bob

@@ -67,4 +67,146 @@ class PluginError(MissionForgeError):
     pass
 
 
+class BaselineAlreadyExistsError(MissionForgeError):
+    """Raised when baseline already committed."""
+
+    def __init__(self, sub_mission_id: str, baseline_path: str):
+        super().__init__(
+            f"Baseline already exists for {sub_mission_id} at {baseline_path}",
+            "Use 'missionforge baseline reset <id> --force' to remove and re-capture",
+        )
+
+
+class BaselineNotCapturedError(MissionForgeError):
+    """Raised when trying to commit without capture."""
+
+    def __init__(self, sub_mission_id: str):
+        super().__init__(
+            f"No baseline.todo.json found for {sub_mission_id}",
+            "Run 'missionforge baseline capture <id>' first to generate baseline.todo.json",
+        )
+
+
+class BaselineValidationError(MissionForgeError):
+    """Raised when baseline validation fails."""
+
+    pass
+
+
+class BaselineIncompleteError(MissionForgeError):
+    """Raised when baseline has unfilled values."""
+
+    def __init__(self, sub_mission_id: str, unfilled_metrics: list[str]):
+        metrics_list = "\n  • ".join(unfilled_metrics)
+        super().__init__(
+            f"Baseline for {sub_mission_id} has unfilled metric values:\n  • {metrics_list}",
+            "Fill all metric values in baseline.todo.json before committing",
+        )
+
+
+class ValidationAlreadyExistsError(MissionForgeError):
+    """Raised when validation.json already committed."""
+
+    def __init__(self, sub_mission_id: str, validation_path: str):
+        super().__init__(
+            f"Validation already exists for {sub_mission_id} at {validation_path}",
+            "Use 'missionforge validate capture <id> --force' to overwrite",
+        )
+
+
+class ValidationNotCapturedError(MissionForgeError):
+    """Raised when trying to commit without capture."""
+
+    def __init__(self, sub_mission_id: str):
+        super().__init__(
+            f"No validation.todo.json found for {sub_mission_id}",
+            "Run 'missionforge validate capture <id>' first to generate validation.todo.json",
+        )
+
+
+class ValidationIncompleteError(MissionForgeError):
+    """Raised when validation has unfilled metric values."""
+
+    def __init__(self, sub_mission_id: str, unfilled_metrics: list[str]):
+        metrics_list = "\n  • ".join(unfilled_metrics)
+        super().__init__(
+            f"Validation for {sub_mission_id} has unfilled metric values:\n  • {metrics_list}",
+            "Fill all final_value fields in validation.todo.json before committing",
+        )
+
+
+class ScopeViolationError(MissionForgeError):
+    """Raised when scope constraints are violated."""
+
+    def __init__(self, sub_mission_id: str, violations: list[str]):
+        violations_list = "\n  • ".join(violations)
+        super().__init__(
+            f"Scope violations detected for {sub_mission_id}:\n  • {violations_list}",
+            "Ensure all changed files are within allowed_paths and outside forbidden_paths",
+        )
+
+
+class ParentValidationError(MissionForgeError):
+    """Base exception for parent validation errors."""
+
+    pass
+
+
+class ParentValidationIncompleteError(ParentValidationError):
+    """Raised when not all sub-missions have validation.json."""
+
+    def __init__(self, mission_id: str, missing_subs: list[str]):
+        missing_list = "\n  • ".join(missing_subs)
+        super().__init__(
+            f"Parent mission {mission_id} cannot be validated - "
+            f"missing validation.json for:\n  • {missing_list}",
+            "Run 'missionforge validate capture <id>' and commit for each sub-mission",
+        )
+
+
+class ParentValidationFailedError(ParentValidationError):
+    """Raised when parent validation fails."""
+
+    def __init__(self, mission_id: str, reason: str):
+        super().__init__(
+            f"Parent mission {mission_id} validation failed: {reason}",
+            "Review and fix the issues before re-validating",
+        )
+
+
+class ParentTestFailedError(ParentValidationError):
+    """Raised when parent test command fails."""
+
+    def __init__(self, mission_id: str, exit_code: int, output: str):
+        # Truncate output to avoid overwhelming display
+        truncated_output = output[:500] + ("..." if len(output) > 500 else "")
+        super().__init__(
+            f"Parent test for {mission_id} failed (exit code: {exit_code})\n"
+            f"Output:\n{truncated_output}",
+            "Fix test failures before proceeding with validation",
+        )
+
+
+class AggregateMetricFailedError(ParentValidationError):
+    """Raised when aggregate metric validation fails."""
+
+    def __init__(self, mission_id: str, failed_metrics: list[str]):
+        metrics_list = "\n  • ".join(failed_metrics)
+        super().__init__(
+            f"Aggregate metrics failed for {mission_id}:\n  • {metrics_list}",
+            "Review sub-mission implementations to meet aggregate targets",
+        )
+
+
+class ForbiddenPathViolationError(ParentValidationError):
+    """Raised when forbidden paths are violated across sub-missions."""
+
+    def __init__(self, mission_id: str, violations: list[str]):
+        violations_list = "\n  • ".join(violations)
+        super().__init__(
+            f"Forbidden path violations detected for {mission_id}:\n  • {violations_list}",
+            "Ensure no sub-mission modifies forbidden paths",
+        )
+
+
 # Made with Bob

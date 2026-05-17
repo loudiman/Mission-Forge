@@ -92,3 +92,7 @@ CLI_FOUNDATION_PLAN.md
 development_roadmap.md
 missionforge_development_phases_with_context.md
 missionforge_plan.md
+
+
+#ruff
+.ruffcache/
