@@ -72,20 +72,20 @@ metrics:
             "deterministic_evidence": {
                 "files_changed": [
                     f"src/api/{sub_id.lower()}.py",
-                    f"tests/test_{sub_id.lower()}.py"
+                    f"tests/test_{sub_id.lower()}.py",
                 ],
                 "scope_check": {
                     "allowed_paths_satisfied": True,
                     "forbidden_paths_violated": False,
-                    "violations": []
+                    "violations": [],
                 },
                 "test_results": {
                     "command": "pytest tests/",
                     "exit_code": 0,
                     "output": "All tests passed",
                     "passed": True,
-                    "duration": 2.5
-                }
+                    "duration": 2.5,
+                },
             },
             "metrics": [
                 {
@@ -93,16 +93,16 @@ metrics:
                     "baseline_value": 65.0,
                     "target_value": 80.0,
                     "final_value": 85.0,
-                    "status": "PASSED"
+                    "status": "PASSED",
                 },
                 {
                     "metric_id": "complexity",
                     "baseline_value": 15.0,
                     "target_value": 10.0,
                     "final_value": 8.0,
-                    "status": "PASSED"
-                }
-            ]
+                    "status": "PASSED",
+                },
+            ],
         }
 
         with open(sub_dir / "validation.json", "w") as f:
@@ -113,17 +113,9 @@ metrics:
 
 def run_parent_validation(base_dir: Path, mission_id: str) -> tuple[int, str, str]:
     """Run the parent validation CLI command."""
-    cmd = [
-        sys.executable, "-m", "missionforge",
-        "validate", "parent", mission_id
-    ]
+    cmd = [sys.executable, "-m", "missionforge", "validate", "parent", mission_id]
 
-    result = subprocess.run(
-        cmd,
-        cwd=base_dir,
-        capture_output=True,
-        text=True
-    )
+    result = subprocess.run(cmd, cwd=base_dir, capture_output=True, text=True)
 
     return result.returncode, result.stdout, result.stderr
 
@@ -211,6 +203,7 @@ def main():
     except Exception as e:
         print(f"\n❌ Test failed with exception: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
     finally:

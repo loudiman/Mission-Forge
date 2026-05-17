@@ -46,13 +46,17 @@ def _make_validation(
         forbidden_paths_violated=forbidden_violated,
         violations=[] if scope_ok and not forbidden_violated else ["bad/file.py"],
     )
-    test_results = TestResults(
-        command="pytest",
-        exit_code=0 if tests_passed else 1,
-        output="",
-        passed=tests_passed,
-        duration=0.1,
-    ) if has_test_results else None
+    test_results = (
+        TestResults(
+            command="pytest",
+            exit_code=0 if tests_passed else 1,
+            output="",
+            passed=tests_passed,
+            duration=0.1,
+        )
+        if has_test_results
+        else None
+    )
 
     return SubMissionValidation(
         sub_mission_id="MF-001-A",

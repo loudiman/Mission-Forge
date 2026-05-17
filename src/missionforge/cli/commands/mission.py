@@ -14,7 +14,9 @@ console = Console()
 def mission_command(
     ctx: typer.Context,
     mission_id: str | None = typer.Argument(None, help="Mission ID"),
-    validate: bool = typer.Option(False, "--validate", help="Validate parent mission configuration"),
+    validate: bool = typer.Option(
+        False, "--validate", help="Validate parent mission configuration"
+    ),
 ) -> None:
     """Manage a mission."""
     # "validate" is a reserved compatibility alias — safe because valid mission IDs

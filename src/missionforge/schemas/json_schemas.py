@@ -166,6 +166,7 @@ def get_validation_schema() -> dict[str, Any]:
     """
     return VALIDATION_SCHEMA
 
+
 # JSON Schema for sub-mission baseline.todo.json (value can be null)
 SUB_MISSION_BASELINE_TODO_SCHEMA: dict[str, Any] = {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -304,7 +305,6 @@ def get_sub_mission_baseline_schema() -> dict[str, Any]:
         JSON schema for baseline.json files.
     """
     return SUB_MISSION_BASELINE_SCHEMA
-
 
 
 # Made with Bob

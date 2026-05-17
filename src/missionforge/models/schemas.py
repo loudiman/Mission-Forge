@@ -66,9 +66,7 @@ class ParentMission(BaseModel):
     test_command: str | None = Field(
         None, description="Command to run tests for mission validation"
     )
-    sub_missions: list[str] = Field(
-        default_factory=list, description="List of sub-mission IDs"
-    )
+    sub_missions: list[str] = Field(default_factory=list, description="List of sub-mission IDs")
     decomposition_rationale: str | None = Field(
         None, description="Rationale for how the mission was decomposed into sub-missions"
     )
@@ -127,9 +125,7 @@ class SubMission(BaseModel):
     metrics: dict[str, MetricDefinition] = Field(
         default_factory=dict, description="Metrics for this sub-mission"
     )
-    test_command: str | None = Field(
-        None, description="Command to run tests for this sub-mission"
-    )
+    test_command: str | None = Field(None, description="Command to run tests for this sub-mission")
 
     @field_validator("id")
     @classmethod
@@ -355,8 +351,7 @@ class ExecutionPlan(BaseModel):
         for mission_id, deps in self.dependency_graph.items():
             if mission_id not in all_missions:
                 raise ValueError(
-                    f"Mission '{mission_id}' in dependency graph "
-                    f"not found in execution order"
+                    f"Mission '{mission_id}' in dependency graph not found in execution order"
                 )
             for dep in deps:
                 if dep not in all_missions:
@@ -429,8 +424,12 @@ class SubMissionBaselineMetric(BaseModel):
             # Allow numeric type compatibility (int/float are interchangeable)
             # But exclude bool since bool is a subclass of int in Python
             numeric_types = (int, float)
-            is_target_numeric = isinstance(self.baseline_target, numeric_types) and not isinstance(self.baseline_target, bool)
-            is_value_numeric = isinstance(self.value, numeric_types) and not isinstance(self.value, bool)
+            is_target_numeric = isinstance(self.baseline_target, numeric_types) and not isinstance(
+                self.baseline_target, bool
+            )
+            is_value_numeric = isinstance(self.value, numeric_types) and not isinstance(
+                self.value, bool
+            )
 
             if is_target_numeric and is_value_numeric:
                 return self
@@ -451,12 +450,8 @@ class SubMissionBaseline(BaseModel):
     timestamp: str | None = Field(
         None, description="ISO 8601 timestamp when baseline was committed"
     )
-    status: str | None = Field(
-        None, description="Baseline status: 'captured' or 'committed'"
-    )
-    metrics: list[SubMissionBaselineMetric] = Field(
-        ..., description="List of baseline metrics"
-    )
+    status: str | None = Field(None, description="Baseline status: 'captured' or 'committed'")
+    metrics: list[SubMissionBaselineMetric] = Field(..., description="List of baseline metrics")
 
     @field_validator("sub_mission_id")
     @classmethod
@@ -482,7 +477,9 @@ class SubMissionBaseline(BaseModel):
 
     @field_validator("metrics")
     @classmethod
-    def validate_metrics_not_empty(cls, v: list[SubMissionBaselineMetric]) -> list[SubMissionBaselineMetric]:
+    def validate_metrics_not_empty(
+        cls, v: list[SubMissionBaselineMetric]
+    ) -> list[SubMissionBaselineMetric]:
         """Ensure at least one metric is defined."""
         if not v:
             raise ValueError("At least one metric must be defined")
@@ -492,8 +489,12 @@ class SubMissionBaseline(BaseModel):
 class ScopeCheckResult(BaseModel):
     """Result of scope validation."""
 
-    allowed_paths_satisfied: bool = Field(..., description="All changed files are within allowed paths")
-    forbidden_paths_violated: bool = Field(..., description="Any changed files violate forbidden paths")
+    allowed_paths_satisfied: bool = Field(
+        ..., description="All changed files are within allowed paths"
+    )
+    forbidden_paths_violated: bool = Field(
+        ..., description="Any changed files violate forbidden paths"
+    )
     violations: list[str] = Field(default_factory=list, description="List of violating file paths")
 
 
@@ -512,16 +513,24 @@ class DeterministicEvidence(BaseModel):
 
     files_changed: list[str] = Field(default_factory=list, description="List of changed file paths")
     scope_check: ScopeCheckResult = Field(..., description="Scope validation results")
-    test_results: TestResults | None = Field(None, description="Test execution results if command defined")
+    test_results: TestResults | None = Field(
+        None, description="Test execution results if command defined"
+    )
 
 
 class ValidationMetric(BaseModel):
     """Single metric with baseline/target/final values."""
 
     metric_id: str = Field(..., description="Unique metric identifier")
-    baseline_value: bool | int | float | str | None = Field(None, description="Value from baseline.json")
-    target_value: bool | int | float | str = Field(..., description="Target value from sub-mission definition")
-    final_value: bool | int | float | str | None = Field(None, description="Final measured value (filled by Bob)")
+    baseline_value: bool | int | float | str | None = Field(
+        None, description="Value from baseline.json"
+    )
+    target_value: bool | int | float | str = Field(
+        ..., description="Target value from sub-mission definition"
+    )
+    final_value: bool | int | float | str | None = Field(
+        None, description="Final measured value (filled by Bob)"
+    )
     status: str | None = Field(None, description="PASSED or FAILED (set on commit)")
 
     @field_validator("metric_id")
@@ -543,7 +552,9 @@ class SubMissionValidation(BaseModel):
     """Complete validation state for a sub-mission."""
 
     sub_mission_id: str = Field(..., description="Sub-mission identifier (e.g., MF-001-A)")
-    timestamp: str | None = Field(None, description="ISO 8601 timestamp when validation was committed")
+    timestamp: str | None = Field(
+        None, description="ISO 8601 timestamp when validation was committed"
+    )
     status: str = Field(..., description="captured, PASSED, FAILED, or BLOCKED")
     deterministic_evidence: DeterministicEvidence = Field(..., description="CLI-captured evidence")
     metrics: list[ValidationMetric] = Field(default_factory=list, description="Metrics to validate")
@@ -563,7 +574,9 @@ class SubMissionValidation(BaseModel):
     @classmethod
     def validate_status(cls, v: str) -> str:
         if v not in ("captured", "PASSED", "FAILED", "BLOCKED"):
-            raise ValueError(f"Invalid status: {v}. Must be one of: captured, PASSED, FAILED, BLOCKED")
+            raise ValueError(
+                f"Invalid status: {v}. Must be one of: captured, PASSED, FAILED, BLOCKED"
+            )
         return v
 
 
@@ -601,8 +614,7 @@ class SubMissionsAggregate(BaseModel):
     failed: int = Field(..., description="Number of FAILED sub-missions")
     blocked: int = Field(..., description="Number of BLOCKED sub-missions")
     details: list[SubMissionSummary] = Field(
-        default_factory=list,
-        description="Detailed status of each sub-mission"
+        default_factory=list, description="Detailed status of each sub-mission"
     )
 
     @field_validator("total", "passed", "failed", "blocked")
@@ -627,16 +639,13 @@ class AggregateMetricResult(BaseModel):
 
     metric_id: str = Field(..., description="Unique metric identifier")
     baseline_value: bool | int | float | str | None = Field(
-        None,
-        description="Baseline value if available"
+        None, description="Baseline value if available"
     )
     target_value: bool | int | float | str = Field(
-        ...,
-        description="Target value from mission definition"
+        ..., description="Target value from mission definition"
     )
     final_value: bool | int | float | str | None = Field(
-        None,
-        description="Final measured value (filled by Bob)"
+        None, description="Final measured value (filled by Bob)"
     )
     status: str = Field(..., description="PASSED or FAILED")
 
@@ -676,10 +685,7 @@ class ForbiddenPathsCheck(BaseModel):
     """Cross-sub-mission forbidden paths validation."""
 
     violated: bool = Field(..., description="Whether any paths violated")
-    violations: list[str] = Field(
-        default_factory=list,
-        description="List of violating file paths"
-    )
+    violations: list[str] = Field(default_factory=list, description="List of violating file paths")
 
 
 class ParentMissionValidation(BaseModel):
@@ -688,21 +694,13 @@ class ParentMissionValidation(BaseModel):
     mission_id: str = Field(..., description="Parent mission ID")
     timestamp: str = Field(..., description="ISO 8601 timestamp")
     status: str = Field(..., description="PASSED, FAILED, or INCOMPLETE")
-    sub_missions: SubMissionsAggregate = Field(
-        ...,
-        description="Aggregate sub-mission status"
-    )
+    sub_missions: SubMissionsAggregate = Field(..., description="Aggregate sub-mission status")
     aggregate_metrics: list[AggregateMetricResult] = Field(
-        default_factory=list,
-        description="Aggregate metric validation results"
+        default_factory=list, description="Aggregate metric validation results"
     )
-    parent_test: ParentTestResult | None = Field(
-        None,
-        description="Parent test execution result"
-    )
+    parent_test: ParentTestResult | None = Field(None, description="Parent test execution result")
     forbidden_paths_check: ForbiddenPathsCheck = Field(
-        ...,
-        description="Forbidden paths validation result"
+        ..., description="Forbidden paths validation result"
     )
 
     @field_validator("mission_id")

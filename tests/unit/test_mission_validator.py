@@ -240,7 +240,11 @@ def test_validate_complex_glob_patterns(validator, valid_mission_data, tmp_path)
     mission_file = mission_dir / "mission.yaml"
 
     # Add complex but valid glob patterns
-    valid_mission_data["allowed_paths"] = ["src/**/*.py", "tests/**/test_*.py", "!**/__pycache__/**"]
+    valid_mission_data["allowed_paths"] = [
+        "src/**/*.py",
+        "tests/**/test_*.py",
+        "!**/__pycache__/**",
+    ]
 
     with open(mission_file, "w") as f:
         yaml.dump(valid_mission_data, f)

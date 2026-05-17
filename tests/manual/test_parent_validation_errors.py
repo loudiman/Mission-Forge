@@ -37,8 +37,9 @@ sub_missions:
     return sub_missions_dir
 
 
-def create_sub_mission_validation(sub_dir: Path, sub_id: str, status: str = "PASSED",
-                                  files_changed: list[str] | None = None):
+def create_sub_mission_validation(
+    sub_dir: Path, sub_id: str, status: str = "PASSED", files_changed: list[str] | None = None
+):
     """Create a sub-mission validation.json."""
     sub_dir.mkdir(exist_ok=True)
 
@@ -54,17 +55,17 @@ def create_sub_mission_validation(sub_dir: Path, sub_id: str, status: str = "PAS
             "scope_check": {
                 "allowed_paths_satisfied": True,
                 "forbidden_paths_violated": False,
-                "violations": []
+                "violations": [],
             },
             "test_results": {
                 "command": "pytest",
                 "exit_code": 0 if status == "PASSED" else 1,
                 "output": "Tests passed" if status == "PASSED" else "Tests failed",
                 "passed": status == "PASSED",
-                "duration": 1.0
-            }
+                "duration": 1.0,
+            },
         },
-        "metrics": []
+        "metrics": [],
     }
 
     with open(sub_dir / "validation.json", "w") as f:
@@ -164,7 +165,7 @@ def test_forbidden_paths_violation():
             sub_dir / f"{mission_id}-A",
             f"{mission_id}-A",
             "PASSED",
-            files_changed=["core/critical.py"]  # Violates forbidden_paths
+            files_changed=["core/critical.py"],  # Violates forbidden_paths
         )
         create_sub_mission_validation(sub_dir / f"{mission_id}-B", f"{mission_id}-B", "PASSED")
         create_sub_mission_validation(sub_dir / f"{mission_id}-C", f"{mission_id}-C", "PASSED")
@@ -243,6 +244,7 @@ def main():
         except Exception as e:
             print(f"\n❌ Test failed with exception: {e}")
             import traceback
+
             traceback.print_exc()
             results.append(False)
 

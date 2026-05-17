@@ -85,20 +85,26 @@ def _setup_workspace(
 
 @pytest.fixture
 def mission_linear(tmp_path):
-    return _setup_workspace(tmp_path, {
-        "MF-001-A.yaml": SUB_A,
-        "MF-001-B.yaml": SUB_B_AFTER_A,
-    })
+    return _setup_workspace(
+        tmp_path,
+        {
+            "MF-001-A.yaml": SUB_A,
+            "MF-001-B.yaml": SUB_B_AFTER_A,
+        },
+    )
 
 
 @pytest.fixture
 def mission_diamond(tmp_path):
-    return _setup_workspace(tmp_path, {
-        "MF-001-A.yaml": SUB_A,
-        "MF-001-B.yaml": SUB_B_AFTER_A,
-        "MF-001-C.yaml": SUB_C_AFTER_A,
-        "MF-001-D.yaml": SUB_D_AFTER_BC,
-    })
+    return _setup_workspace(
+        tmp_path,
+        {
+            "MF-001-A.yaml": SUB_A,
+            "MF-001-B.yaml": SUB_B_AFTER_A,
+            "MF-001-C.yaml": SUB_C_AFTER_A,
+            "MF-001-D.yaml": SUB_D_AFTER_BC,
+        },
+    )
 
 
 @pytest.fixture
@@ -121,10 +127,13 @@ depends_on:
 allowed_paths:
   - "src/b/**"
 """
-    return _setup_workspace(tmp_path, {
-        "MF-001-A.yaml": cycle_a,
-        "MF-001-B.yaml": cycle_b,
-    })
+    return _setup_workspace(
+        tmp_path,
+        {
+            "MF-001-A.yaml": cycle_a,
+            "MF-001-B.yaml": cycle_b,
+        },
+    )
 
 
 @pytest.fixture
@@ -336,10 +345,13 @@ class TestPlanCommandErrors:
         assert "No sub-missions" in result.stdout
 
     def test_invalid_sub_mission_blocks_plan(self, tmp_path, monkeypatch):
-        ws = _setup_workspace(tmp_path, {
-            "MF-001-A.yaml": SUB_A,
-            "MF-001-B.yaml": "id: [\n",
-        })
+        ws = _setup_workspace(
+            tmp_path,
+            {
+                "MF-001-A.yaml": SUB_A,
+                "MF-001-B.yaml": "id: [\n",
+            },
+        )
         monkeypatch.chdir(ws)
         result = runner.invoke(app, ["plan", "MF-001"])
         assert result.exit_code == 1

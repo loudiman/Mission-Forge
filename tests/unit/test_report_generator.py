@@ -19,10 +19,8 @@ def sample_mission_data():
         "goal": "Test mission goal",
         "test_command": "pytest",
         "forbidden_paths": ["*.secret"],
-        "aggregate_metrics": {
-            "test_metric": {"target": 100.0}
-        },
-        "sub_missions": ["MF-001-A", "MF-001-B"]
+        "aggregate_metrics": {"test_metric": {"target": 100.0}},
+        "sub_missions": ["MF-001-A", "MF-001-B"],
     }
 
 
@@ -37,7 +35,7 @@ def sample_sub_mission_data():
         "depends_on": [],
         "allowed_paths": ["src/**"],
         "metrics": {},
-        "test_command": "pytest tests/unit"
+        "test_command": "pytest tests/unit",
     }
 
 
@@ -54,17 +52,17 @@ def sample_validation_data():
             "lines_removed": 50,
             "tests_passed": True,
             "test_coverage": 85.5,
-            "custom_metrics": {
-                "test_metric": 100.0
-            }
+            "custom_metrics": {"test_metric": 100.0},
         },
         "passed": True,
-        "errors": []
+        "errors": [],
     }
 
 
 @pytest.fixture
-def temp_mission_dir(tmp_path, sample_mission_data, sample_sub_mission_data, sample_validation_data):
+def temp_mission_dir(
+    tmp_path, sample_mission_data, sample_sub_mission_data, sample_validation_data
+):
     """Create temporary mission directory structure."""
     mission_dir = tmp_path / "MF-001"
     mission_dir.mkdir()
@@ -108,18 +106,20 @@ class TestReportGenerator:
 
         with patch("missionforge.core.report_generator.get_commit_hash") as mock_commit:
             with patch("missionforge.core.report_generator.get_diff_stats") as mock_stats:
-                with patch("missionforge.core.report_generator.get_changed_files_detailed") as mock_files:
+                with patch(
+                    "missionforge.core.report_generator.get_changed_files_detailed"
+                ) as mock_files:
                     mock_commit.return_value = "abc1234567890"
                     mock_stats.return_value = {
                         "files_changed": 5,
                         "insertions": 100,
-                        "deletions": 50
+                        "deletions": 50,
                     }
                     mock_files.return_value = {
                         "added": [Path("new_file.py")],
                         "modified": [Path("existing_file.py")],
                         "deleted": [],
-                        "renamed": []
+                        "renamed": [],
                     }
 
                     content, output_path = generator.generate_report(temp_mission_dir)
@@ -135,21 +135,25 @@ class TestReportGenerator:
 
         with patch("missionforge.core.report_generator.get_commit_hash") as mock_commit:
             with patch("missionforge.core.report_generator.get_diff_stats") as mock_stats:
-                with patch("missionforge.core.report_generator.get_changed_files_detailed") as mock_files:
+                with patch(
+                    "missionforge.core.report_generator.get_changed_files_detailed"
+                ) as mock_files:
                     mock_commit.return_value = "abc1234567890"
                     mock_stats.return_value = {
                         "files_changed": 5,
                         "insertions": 100,
-                        "deletions": 50
+                        "deletions": 50,
                     }
                     mock_files.return_value = {
                         "added": [],
                         "modified": [],
                         "deleted": [],
-                        "renamed": []
+                        "renamed": [],
                     }
 
-                    content, output_path = generator.generate_report(temp_mission_dir, custom_output)
+                    content, output_path = generator.generate_report(
+                        temp_mission_dir, custom_output
+                    )
 
         assert output_path == custom_output
         assert output_path.exists()
@@ -160,18 +164,20 @@ class TestReportGenerator:
 
         with patch("missionforge.core.report_generator.get_commit_hash") as mock_commit:
             with patch("missionforge.core.report_generator.get_diff_stats") as mock_stats:
-                with patch("missionforge.core.report_generator.get_changed_files_detailed") as mock_files:
+                with patch(
+                    "missionforge.core.report_generator.get_changed_files_detailed"
+                ) as mock_files:
                     mock_commit.return_value = "abc1234567890"
                     mock_stats.return_value = {
                         "files_changed": 5,
                         "insertions": 100,
-                        "deletions": 50
+                        "deletions": 50,
                     }
                     mock_files.return_value = {
                         "added": [],
                         "modified": [],
                         "deleted": [],
-                        "renamed": []
+                        "renamed": [],
                     }
 
                     content, _ = generator.generate_report(temp_mission_dir)
@@ -191,20 +197,14 @@ class TestReportGenerator:
     def test_calculate_overall_status_passed(self):
         """Test overall status calculation when all pass."""
         generator = ReportGenerator()
-        validation_results = {
-            "MF-001": {"passed": True},
-            "MF-001-A": {"passed": True}
-        }
+        validation_results = {"MF-001": {"passed": True}, "MF-001-A": {"passed": True}}
         status = generator._calculate_overall_status(validation_results)
         assert status == "PASSED"
 
     def test_calculate_overall_status_failed(self):
         """Test overall status calculation when some fail."""
         generator = ReportGenerator()
-        validation_results = {
-            "MF-001": {"passed": True},
-            "MF-001-A": {"passed": False}
-        }
+        validation_results = {"MF-001": {"passed": True}, "MF-001-A": {"passed": False}}
         status = generator._calculate_overall_status(validation_results)
         assert status == "FAILED"
 
@@ -239,15 +239,7 @@ class TestReportGenerator:
         """Test metrics comparison collection."""
         generator = ReportGenerator()
         parent_mission = ParentMission(**sample_mission_data)
-        validation_results = {
-            "MF-001": {
-                "metrics": {
-                    "custom_metrics": {
-                        "test_metric": 100.0
-                    }
-                }
-            }
-        }
+        validation_results = {"MF-001": {"metrics": {"custom_metrics": {"test_metric": 100.0}}}}
 
         comparisons = generator._collect_metrics_comparison(parent_mission, validation_results)
 
@@ -262,7 +254,7 @@ class TestReportGenerator:
         generator = ReportGenerator()
         sub_missions = [
             {"id": "MF-001-A", "depends_on": []},
-            {"id": "MF-001-B", "depends_on": ["MF-001-A"]}
+            {"id": "MF-001-B", "depends_on": ["MF-001-A"]},
         ]
 
         diagram = generator._generate_dependency_diagram(sub_missions, None)
@@ -276,11 +268,7 @@ class TestReportGenerator:
         """Test forbidden path violation checking."""
         generator = ReportGenerator()
         parent_mission = ParentMission(**sample_mission_data)
-        validation_results = {
-            "MF-001-A": {
-                "errors": ["Modified forbidden path: secret.txt"]
-            }
-        }
+        validation_results = {"MF-001-A": {"errors": ["Modified forbidden path: secret.txt"]}}
 
         violations = generator._check_forbidden_violations(parent_mission, validation_results)
 

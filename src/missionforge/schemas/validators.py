@@ -270,9 +270,7 @@ class SchemaValidator:
             )
 
     @staticmethod
-    def validate_forbidden_paths(
-        parent_mission: ParentMission, sub_mission: SubMission
-    ) -> None:
+    def validate_forbidden_paths(parent_mission: ParentMission, sub_mission: SubMission) -> None:
         """Validate that sub-mission paths don't conflict with forbidden paths.
 
         Args:
@@ -287,9 +285,7 @@ class SchemaValidator:
         if not parent_mission.forbidden_paths:
             return
 
-        forbidden_spec = pathspec.PathSpec.from_lines(
-            "gitignore", parent_mission.forbidden_paths
-        )
+        forbidden_spec = pathspec.PathSpec.from_lines("gitignore", parent_mission.forbidden_paths)
 
         conflicts = []
         for allowed_path in sub_mission.allowed_paths:

@@ -68,7 +68,9 @@ def next_command(
         else:  # "BLOCKED" from validation service
             blocked.append((sub_id, deps))
 
-    _display_progress(mission_id, complete, ready, blocked, failed, pending, len(plan.execution_order))
+    _display_progress(
+        mission_id, complete, ready, blocked, failed, pending, len(plan.execution_order)
+    )
 
     if len(complete) == len(plan.execution_order):
         raise typer.Exit(0)
@@ -130,12 +132,16 @@ def _display_progress(
 
         if len(ready) > 1:
             parallel_ids = ", ".join(sub_id for sub_id, _ in ready[1:])
-            console.print(f"\n[dim]Note: {parallel_ids} can run in parallel (Phase 3 feature)[/dim]")
+            console.print(
+                f"\n[dim]Note: {parallel_ids} can run in parallel (Phase 3 feature)[/dim]"
+            )
     elif not complete:
         console.print("[yellow]No sub-missions are ready to execute.[/yellow]")
         console.print("Check failed dependencies and resolve before proceeding.")
     else:
-        console.print("[yellow]No sub-missions are ready. Resolve failed sub-missions to unblock.[/yellow]")
+        console.print(
+            "[yellow]No sub-missions are ready. Resolve failed sub-missions to unblock.[/yellow]"
+        )
 
     if blocked:
         console.print("\n[bold yellow]BLOCKED:[/bold yellow]")
@@ -149,7 +155,9 @@ def _display_progress(
         console.print("\n[bold cyan]PENDING COMMIT:[/bold cyan]")
         for sub_id in pending:
             console.print(f"  ◎ [cyan]{sub_id}[/cyan]")
-            console.print("    Validation captured — run 'missionforge validate commit' to finalize")
+            console.print(
+                "    Validation captured — run 'missionforge validate commit' to finalize"
+            )
 
     if failed:
         console.print("\n[bold red]FAILED:[/bold red]")

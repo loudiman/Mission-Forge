@@ -127,9 +127,7 @@ class TestSubMission:
         valid_ids = ["MF-001-A", "AB-999-Z", "PROJ-123-B"]
         for sub_id in valid_ids:
             parent_id = sub_id.rsplit("-", 1)[0]
-            sub = SubMission(
-                id=sub_id, parent=parent_id, title="Test", goal="Test"
-            )
+            sub = SubMission(id=sub_id, parent=parent_id, title="Test", goal="Test")
             assert sub.id == sub_id
 
     def test_invalid_sub_mission_id_formats(self):
@@ -142,9 +140,7 @@ class TestSubMission:
         ]
         for sub_id in invalid_ids:
             with pytest.raises(ValidationError) as exc_info:
-                SubMission(
-                    id=sub_id, parent="MF-001", title="Test", goal="Test"
-                )
+                SubMission(id=sub_id, parent="MF-001", title="Test", goal="Test")
             assert "Invalid sub-mission ID format" in str(exc_info.value)
 
     def test_parent_child_mismatch(self):
@@ -161,24 +157,18 @@ class TestSubMission:
     def test_empty_title_rejected(self):
         """Test that empty title is rejected."""
         with pytest.raises(ValidationError) as exc_info:
-            SubMission(
-                id="MF-001-A", parent="MF-001", title="  ", goal="Test"
-            )
+            SubMission(id="MF-001-A", parent="MF-001", title="  ", goal="Test")
         assert "cannot be empty" in str(exc_info.value).lower()
 
     def test_empty_goal_rejected(self):
         """Test that empty goal is rejected."""
         with pytest.raises(ValidationError) as exc_info:
-            SubMission(
-                id="MF-001-A", parent="MF-001", title="Test", goal="  "
-            )
+            SubMission(id="MF-001-A", parent="MF-001", title="Test", goal="  ")
         assert "cannot be empty" in str(exc_info.value).lower()
 
     def test_minimal_sub_mission(self):
         """Test minimal valid sub-mission."""
-        sub = SubMission(
-            id="MF-001-A", parent="MF-001", title="Test", goal="Test goal"
-        )
+        sub = SubMission(id="MF-001-A", parent="MF-001", title="Test", goal="Test goal")
         assert sub.id == "MF-001-A"
         assert sub.parent == "MF-001"
         assert sub.depends_on == []
@@ -244,9 +234,7 @@ class TestBaseline:
             mission_id="MF-001",
             timestamp="2024-01-01T00:00:00Z",
             git_commit="abc123def456",
-            metrics=BaselineMetrics(
-                files_changed=0, lines_added=0, lines_removed=0
-            ),
+            metrics=BaselineMetrics(files_changed=0, lines_added=0, lines_removed=0),
         )
         assert baseline.mission_id == "MF-001"
         assert baseline.git_commit == "abc123def456"
@@ -258,9 +246,7 @@ class TestBaseline:
                 mission_id="MF-001",
                 timestamp="2024-01-01T00:00:00Z",
                 git_commit="invalid!@#",
-                metrics=BaselineMetrics(
-                    files_changed=0, lines_added=0, lines_removed=0
-                ),
+                metrics=BaselineMetrics(files_changed=0, lines_added=0, lines_removed=0),
             )
         assert "Invalid git commit hash" in str(exc_info.value)
 

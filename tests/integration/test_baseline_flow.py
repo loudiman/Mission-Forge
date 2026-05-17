@@ -119,8 +119,8 @@ class TestBaselineFlowHappyPath:
             assert metric["value"] is None
 
         # Step 2: Simulate Bob filling the values (all as floats to match target types)
-        todo_data["metrics"][0]["value"] = 0.0   # rest_endpoint_exists
-        todo_data["metrics"][1]["value"] = 7.0   # corba_references_count
+        todo_data["metrics"][0]["value"] = 0.0  # rest_endpoint_exists
+        todo_data["metrics"][1]["value"] = 7.0  # corba_references_count
         todo_data["metrics"][2]["value"] = 78.5  # test_coverage
 
         with open(todo_path, "w") as f:

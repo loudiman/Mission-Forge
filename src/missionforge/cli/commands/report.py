@@ -48,9 +48,7 @@ def _validate_output_path(output_path: Path, workspace_root: Path) -> None:
             pass
 
         # Path is outside allowed directories
-        console.print(
-            "[red]Error:[/red] Output path must be within workspace or home directory"
-        )
+        console.print("[red]Error:[/red] Output path must be within workspace or home directory")
         console.print(f"Workspace: {workspace_resolved}")
         console.print(f"Home: {home_dir}")
         console.print(f"Requested: {resolved_path}")

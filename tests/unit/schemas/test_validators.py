@@ -330,9 +330,7 @@ class TestValidateSubMissionDependencies:
 
     def test_no_dependencies(self):
         """Test with no dependencies."""
-        sub_mission = SubMission(
-            id="MF-001-A", parent="MF-001", title="Test", goal="Test"
-        )
+        sub_mission = SubMission(id="MF-001-A", parent="MF-001", title="Test", goal="Test")
         available = ["MF-001-A"]
 
         # Should not raise
@@ -344,9 +342,7 @@ class TestValidateForbiddenPaths:
 
     def test_no_conflicts(self):
         """Test with no path conflicts."""
-        parent = ParentMission(
-            id="MF-001", goal="Test", forbidden_paths=["core/**"]
-        )
+        parent = ParentMission(id="MF-001", goal="Test", forbidden_paths=["core/**"])
         sub = SubMission(
             id="MF-001-A",
             parent="MF-001",
@@ -360,9 +356,7 @@ class TestValidateForbiddenPaths:
 
     def test_path_conflict(self):
         """Test with path conflict."""
-        parent = ParentMission(
-            id="MF-001", goal="Test", forbidden_paths=["core/**"]
-        )
+        parent = ParentMission(id="MF-001", goal="Test", forbidden_paths=["core/**"])
         sub = SubMission(
             id="MF-001-A",
             parent="MF-001",

@@ -152,9 +152,7 @@ def test_workspace_init_creates_valid_yaml(runner: CliRunner, tmp_path: Path, mo
     assert "test_command:" in content
 
 
-def test_workspace_status_shows_sub_mission_count(
-    runner: CliRunner, tmp_path: Path, monkeypatch
-):
+def test_workspace_status_shows_sub_mission_count(runner: CliRunner, tmp_path: Path, monkeypatch):
     """Test that workspace status shows sub-mission count."""
     monkeypatch.chdir(tmp_path)
 
@@ -162,9 +160,7 @@ def test_workspace_status_shows_sub_mission_count(
     runner.invoke(app, ["workspace", "init", "MF-001"])
 
     # Create sub-missions
-    sub_missions_dir = (
-        tmp_path / ".missionforge" / "missions" / "MF-001" / "sub-missions"
-    )
+    sub_missions_dir = tmp_path / ".missionforge" / "missions" / "MF-001" / "sub-missions"
     (sub_missions_dir / "MF-001-A.yaml").write_text("id: MF-001-A\n")
     (sub_missions_dir / "MF-001-B.yaml").write_text("id: MF-001-B\n")
 
@@ -173,5 +169,6 @@ def test_workspace_status_shows_sub_mission_count(
     assert result.exit_code == 0
     assert "MF-001" in result.stdout
     assert "2" in result.stdout  # Should show 2 sub-missions
+
 
 # Made with Bob

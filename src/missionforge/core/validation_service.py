@@ -231,7 +231,10 @@ class ValidationService:
         evidence = validation.deterministic_evidence
 
         # BLOCKED: scope violations or test failures
-        if evidence.scope_check.forbidden_paths_violated or not evidence.scope_check.allowed_paths_satisfied:
+        if (
+            evidence.scope_check.forbidden_paths_violated
+            or not evidence.scope_check.allowed_paths_satisfied
+        ):
             return "BLOCKED"
         if evidence.test_results is not None and not evidence.test_results.passed:
             return "BLOCKED"

@@ -59,7 +59,7 @@ class ReportGenerator:
         except (OSError, PermissionError) as e:
             raise MissionForgeError(
                 f"Failed to write report to {output_path}: {e}",
-                "Check file permissions and disk space"
+                "Check file permissions and disk space",
             ) from e
 
         return report_content, output_path
@@ -105,17 +105,13 @@ class ReportGenerator:
         dependency_diagram = self._generate_dependency_diagram(sub_missions, plan)
 
         # Collect metrics comparison
-        metrics_comparison = self._collect_metrics_comparison(
-            parent_mission, validation_results
-        )
+        metrics_comparison = self._collect_metrics_comparison(parent_mission, validation_results)
 
         # Get files changed summary
         files_changed = self._get_files_changed_summary(git_info)
 
         # Check for forbidden path violations
-        forbidden_violations = self._check_forbidden_violations(
-            parent_mission, validation_results
-        )
+        forbidden_violations = self._check_forbidden_violations(parent_mission, validation_results)
 
         # Get next suggested mission if available
         next_mission = self._get_next_mission(mission_path)
@@ -135,9 +131,7 @@ class ReportGenerator:
             "cli_version": "0.1.0",
         }
 
-    def _load_sub_missions(
-        self, mission_path: Path, parent_id: str
-    ) -> list[dict[str, Any]]:
+    def _load_sub_missions(self, mission_path: Path, parent_id: str) -> list[dict[str, Any]]:
         """Load all sub-missions for the parent mission.
 
         Args:
@@ -279,9 +273,7 @@ class ReportGenerator:
                 "renamed_files": [],
             }
 
-    def _calculate_overall_status(
-        self, validation_results: dict[str, dict[str, Any]]
-    ) -> str:
+    def _calculate_overall_status(self, validation_results: dict[str, dict[str, Any]]) -> str:
         """Calculate overall mission status from validation results.
 
         Args:
@@ -354,9 +346,7 @@ class ReportGenerator:
                     status = "PASSED" if final_value == metric_def.target else "FAILED"
                 elif metric_def.min is not None and metric_def.max is not None:
                     status = (
-                        "PASSED"
-                        if metric_def.min <= final_value <= metric_def.max
-                        else "FAILED"
+                        "PASSED" if metric_def.min <= final_value <= metric_def.max else "FAILED"
                     )
                 elif metric_def.min is not None:
                     status = "PASSED" if final_value >= metric_def.min else "FAILED"

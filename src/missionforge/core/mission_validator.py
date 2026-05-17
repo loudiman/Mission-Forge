@@ -35,9 +35,7 @@ class MissionValidator:
 
         return len(errors) == 0, errors
 
-    def _validate_mission_id_consistency(
-        self, mission_id: str, mission_path: Path
-    ) -> list[str]:
+    def _validate_mission_id_consistency(self, mission_id: str, mission_path: Path) -> list[str]:
         """Validate mission ID matches directory name.
 
         Args:

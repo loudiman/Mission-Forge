@@ -83,7 +83,6 @@ docs/superpowers/
 
 # Local-only directories
 .bob/
-.missionforge/
 issues/
 
 # Local-only planning docs
