@@ -12,8 +12,8 @@ from ..models.schemas import (
     ForbiddenPathsCheck,
     ParentMissionValidation,
     ParentTestResult,
-    SubMissionSummary,
     SubMissionsAggregate,
+    SubMissionSummary,
     SubMissionValidation,
 )
 from ..schemas.validators import SchemaValidator
@@ -202,7 +202,7 @@ class ParentValidationService:
         metrics_def: dict
     ) -> list[AggregateMetricResult]:
         """Validate aggregate metrics.
-        
+
         Note: For now, this is a placeholder. In a full implementation,
         this would prompt Bob to measure metrics. For testing purposes,
         we'll return empty list if no metrics are provided externally.

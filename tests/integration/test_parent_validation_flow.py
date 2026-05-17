@@ -166,10 +166,10 @@ class TestParentValidationHappyPath:
 
         details = data["sub_missions"]["details"]
         assert len(details) == 3
-        
+
         sub_ids = {d["id"] for d in details}
         assert sub_ids == {"MF-001-A", "MF-001-B", "MF-001-C"}
-        
+
         for detail in details:
             assert detail["status"] == "PASSED"
             assert detail["timestamp"] is not None

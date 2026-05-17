@@ -139,9 +139,9 @@ def validate_parent(
     """
     try:
         service = ParentValidationService()
-        
+
         console.print(f"\n[bold]Validating parent mission {mission_id}...[/bold]")
-        
+
         validation_path = service.validate_parent_mission(mission_id)
 
         with open(validation_path) as f:
@@ -192,7 +192,7 @@ def validate_parent(
             console.print(table)
 
         # Display forbidden paths check
-        console.print(f"\n[bold]Forbidden paths check:[/bold]")
+        console.print("\n[bold]Forbidden paths check:[/bold]")
         if forbidden_check.get("violated"):
             console.print(f"  [red]✗ {len(forbidden_check['violations'])} violation(s) detected[/red]")
             for violation in forbidden_check.get("violations", [])[:5]:  # Show first 5
