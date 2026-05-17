@@ -269,7 +269,7 @@ def _display_current_status(
                     else:
                         status = "❌ Invalid ID"
                         validation = f"Must be {parent_id}-A … {parent_id}-Z (max 26)"
-                        
+
             except Exception as e:
                 status = "❌ Invalid"
                 validation = str(e)[:50] + "..." if len(str(e)) > 50 else str(e)
